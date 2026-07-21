@@ -1,5 +1,5 @@
 import { Search, Play, Pause, Trash2 } from 'lucide-react';
-import './cloudwatch.css';
+import '../cloudwatch.css';
 
 interface CloudWatchFiltersProps {
   groups: string[];

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { EC2Instance } from '../../types';
-import { getEC2Instances, triggerEC2Action } from '../../api';
+import { getEC2Instances, triggerEC2Action } from './api';
 import { Server, RefreshCw } from 'lucide-react';
-import EC2List from './EC2List';
-import EC2Inspector from './EC2Inspector';
+import EC2List from './components/EC2List';
+import EC2Inspector from './components/EC2Inspector';
 import './ec2.css';
 
 export default function EC2() {

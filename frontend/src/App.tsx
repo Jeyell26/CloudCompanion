@@ -1,5 +1,5 @@
 import { BrowserRouter } from 'react-router-dom';
-import DashboardLayout from './components/DashboardLayout';
+import DashboardLayout from './features/dashboard/dashboard.tsx';
 
 function App() {
   return (

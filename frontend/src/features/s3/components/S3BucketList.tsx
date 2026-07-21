@@ -1,5 +1,5 @@
 import { Folder } from 'lucide-react';
-import './s3.css';
+import '../s3.css';
 
 interface S3BucketListProps {
   buckets: string[];

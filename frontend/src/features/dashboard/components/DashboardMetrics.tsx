@@ -1,5 +1,5 @@
 import { Server, Activity, ShieldAlert, DollarSign } from 'lucide-react';
-import './dashboard.css';
+import '../dashboard.css';
 
 interface DashboardMetricsProps {
   ec2RunningCount: number;

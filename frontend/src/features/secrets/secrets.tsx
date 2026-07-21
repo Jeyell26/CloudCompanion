@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { SecretMetadata } from '../../types';
-import { getSecretsMetadata, getSecretValue } from '../../api';
+import { getSecretsMetadata, getSecretValue } from './api';
 import { Shield, Eye, EyeOff, Loader2, Copy, Check, Lock } from 'lucide-react';
+import './secrets.css';
 
-function SecretsPanel() {
+function Secrets() {
   const [secrets, setSecrets] = useState<SecretMetadata[]>([]);
   const [revealedSecretName, setRevealedSecretName] = useState<string | null>(null);
   const [secretValue, setSecretValue] = useState<string>('');
@@ -24,7 +25,6 @@ function SecretsPanel() {
 
   const handleReveal = async (name: string) => {
     if (revealedSecretName === name) {
-      // Toggle close
       setRevealedSecretName(null);
       setSecretValue('');
       return;
@@ -35,7 +35,6 @@ function SecretsPanel() {
     setSecretValue('');
 
     try {
-      // Simulate KMS key decryption time
       const val = await getSecretValue(name);
       setTimeout(() => {
         setSecretValue(val);
@@ -138,4 +137,4 @@ function SecretsPanel() {
   );
 }
 
-export default SecretsPanel;
+export default Secrets;

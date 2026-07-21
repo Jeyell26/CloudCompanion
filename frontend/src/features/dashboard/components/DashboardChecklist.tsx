@@ -1,5 +1,5 @@
 import { Terminal } from 'lucide-react';
-import './dashboard.css';
+import '../dashboard.css';
 
 interface DashboardChecklistProps {
   rotationWarning: boolean;

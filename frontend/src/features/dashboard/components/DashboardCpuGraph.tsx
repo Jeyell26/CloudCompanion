@@ -1,5 +1,5 @@
 import { Cpu } from 'lucide-react';
-import './dashboard.css';
+import '../dashboard.css';
 
 interface DashboardCpuGraphProps {
   cpuHistory: number[];

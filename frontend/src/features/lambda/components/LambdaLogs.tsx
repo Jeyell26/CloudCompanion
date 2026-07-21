@@ -1,5 +1,5 @@
 import { Terminal } from 'lucide-react';
-import './lambda.css';
+import '../lambda.css';
 
 interface LambdaLogsProps {
   consoleLogs: string[];

@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { Upload, CheckCircle2 } from 'lucide-react';
-import './s3.css';
+import '../s3.css';
 
 interface S3UploaderProps {
   selectedBucket: string;

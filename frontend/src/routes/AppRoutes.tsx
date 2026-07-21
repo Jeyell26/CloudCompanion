@@ -5,7 +5,7 @@ import Lambda from '../features/lambda/lambda.tsx';
 import CloudWatch from '../features/cloudwatch/cloudwatch.tsx';
 import S3 from '../features/s3/s3.tsx';
 import Integrations from '../features/integrations/integrations.tsx';
-import Secrets from '../features/secrets/Secrets.tsx';
+import Secrets from '../features/secrets/secrets.tsx';
 
 function AppRoutes() {
   return (

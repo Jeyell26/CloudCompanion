@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { EC2Instance, LambdaFunction, IntegrationStatus } from '../../types';
-import { getEC2Instances, getLambdas, getIntegrationStatus } from '../../api';
-import DashboardMetrics from './DashboardMetrics';
-import DashboardCpuGraph from './DashboardCpuGraph';
-import DashboardTelemetry from './DashboardTelemetry';
-import DashboardChecklist from './DashboardChecklist';
+import { getEC2Instances, getLambdas, getIntegrationStatus } from './api';
+import DashboardMetrics from './components/DashboardMetrics';
+import DashboardCpuGraph from './components/DashboardCpuGraph';
+import DashboardTelemetry from './components/DashboardTelemetry';
+import DashboardChecklist from './components/DashboardChecklist';
 import './dashboard.css';
 
 export default function Dashboard() {

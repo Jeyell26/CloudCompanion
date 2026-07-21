@@ -1,6 +1,6 @@
-import type { IntegrationStatus } from '../../types';
+import type { IntegrationStatus } from '../../../types';
 import { Radio, Send } from 'lucide-react';
-import './integrations.css';
+import '../integrations.css';
 
 interface IoTBrokerCardProps {
   status: IntegrationStatus | null;

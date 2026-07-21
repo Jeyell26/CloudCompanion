@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
-import type { LogEvent } from '../../types';
-import './cloudwatch.css';
+import type { LogEvent } from '../../../types';
+import '../cloudwatch.css';
 
 interface CloudWatchLogsProps {
   logs: LogEvent[];

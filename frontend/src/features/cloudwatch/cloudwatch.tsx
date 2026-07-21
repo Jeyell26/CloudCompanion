@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { LogEvent } from '../../types';
-import { getLogGroups, getLogs } from '../../api';
+import { getLogGroups, getLogs } from './api';
 import { Terminal as TerminalIcon } from 'lucide-react';
-import CloudWatchFilters from './CloudWatchFilters';
-import CloudWatchLogs from './CloudWatchLogs';
+import CloudWatchFilters from './components/CloudWatchFilters';
+import CloudWatchLogs from './components/CloudWatchLogs';
 import './cloudwatch.css';
 
 export default function CloudWatch() {

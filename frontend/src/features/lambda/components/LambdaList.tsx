@@ -1,5 +1,5 @@
-import type { LambdaFunction } from '../../types';
-import './lambda.css';
+import type { LambdaFunction } from '../../../types';
+import '../lambda.css';
 
 interface LambdaListProps {
   lambdas: LambdaFunction[];

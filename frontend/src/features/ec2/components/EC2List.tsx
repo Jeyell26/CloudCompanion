@@ -1,6 +1,6 @@
-import type { EC2Instance } from '../../types';
+import type { EC2Instance } from '../../../types';
 import { Play, Square, Loader2, Globe } from 'lucide-react';
-import './ec2.css';
+import '../ec2.css';
 
 interface EC2ListProps {
   instances: EC2Instance[];

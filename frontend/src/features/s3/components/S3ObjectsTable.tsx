@@ -1,6 +1,6 @@
-import type { S3Object } from '../../types';
+import type { S3Object } from '../../../types';
 import { File } from 'lucide-react';
-import './s3.css';
+import '../s3.css';
 
 interface S3ObjectsTableProps {
   objects: S3Object[];

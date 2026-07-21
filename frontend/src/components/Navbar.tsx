@@ -1,5 +1,6 @@
 import { LayoutDashboard, Server, Activity, Terminal, HardDrive, Layers, Shield, ChevronLeft } from 'lucide-react';
 import { NavLink, type NavLinkRenderProps } from 'react-router-dom';
+import './navbar.css';
 
 interface NavbarProps {
   isCollapsed: boolean;

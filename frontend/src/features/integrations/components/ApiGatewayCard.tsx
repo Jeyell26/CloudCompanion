@@ -1,6 +1,6 @@
-import type { IntegrationStatus } from '../../types';
+import type { IntegrationStatus } from '../../../types';
 import { Globe } from 'lucide-react';
-import './integrations.css';
+import '../integrations.css';
 
 interface ApiGatewayCardProps {
   status: IntegrationStatus | null;

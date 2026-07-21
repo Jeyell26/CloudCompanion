@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { S3Object } from '../../types';
-import { getS3Buckets, getS3Objects, uploadS3ObjectSimulate } from '../../api';
+import { getS3Buckets, getS3Objects, uploadS3ObjectSimulate } from './api';
 import { HardDrive } from 'lucide-react';
-import S3BucketList from './S3BucketList';
-import S3Uploader from './S3Uploader';
-import S3ObjectsTable from './S3ObjectsTable';
+import S3BucketList from './components/S3BucketList';
+import S3Uploader from './components/S3Uploader';
+import S3ObjectsTable from './components/S3ObjectsTable';
 import './s3.css';
 
 export default function S3() {

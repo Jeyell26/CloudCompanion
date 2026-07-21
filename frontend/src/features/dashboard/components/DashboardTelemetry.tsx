@@ -1,5 +1,5 @@
 import { Wifi } from 'lucide-react';
-import './dashboard.css';
+import '../dashboard.css';
 
 interface DashboardTelemetryProps {
   telemetry: any[];

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { Terminal } from 'lucide-react';
-import './integrations.css';
+import '../integrations.css';
 
 interface MqttTerminalProps {
   mqttLogs: string[];

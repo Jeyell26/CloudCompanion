@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { LambdaFunction } from '../../types';
-import { getLambdas, invokeLambda } from '../../api';
+import { getLambdas, invokeLambda } from './api';
 import { Activity } from 'lucide-react';
-import LambdaList from './LambdaList';
-import LambdaInvoke from './LambdaInvoke';
-import LambdaLogs from './LambdaLogs';
+import LambdaList from './components/LambdaList';
+import LambdaInvoke from './components/LambdaInvoke';
+import LambdaLogs from './components/LambdaLogs';
 import './lambda.css';
 
 export default function Lambda() {

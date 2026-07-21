@@ -1,5 +1,5 @@
 import { Code, Cpu, Play } from 'lucide-react';
-import './lambda.css';
+import '../lambda.css';
 
 interface LambdaInvokeProps {
   functionName: string;

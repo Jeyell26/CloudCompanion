@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { loginUser, registerUser } from '../api';
+import { loginUser, registerUser } from '../api/auth';
 import type { User } from '../types';
 import { Lock, Mail, User as UserIcon, ShieldAlert } from 'lucide-react';
+import './login.css';
 
 interface LoginProps {
   onAuthSuccess: (user: User) => void;
