@@ -1,0 +1,169 @@
+/* S3 Feature Styles */
+
+.s3-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.s3-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 20px;
+}
+
+/* Bucket List Sidebar */
+.s3-bucket-list-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: fit-content;
+}
+
+.s3-bucket-list-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.s3-bucket-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.s3-bucket-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  border: 1px solid transparent;
+  transition: all var(--transition-normal);
+  color: var(--text-secondary);
+}
+
+.s3-bucket-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.s3-bucket-item.selected {
+  background-color: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.2);
+  color: var(--text-primary);
+}
+
+.s3-bucket-item-name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Content Area */
+.s3-content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Upload Zone */
+.s3-upload-card {
+  padding: 24px;
+}
+
+.s3-uploading-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  padding: 16px;
+}
+
+.s3-uploading-text {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.s3-upload-progress-bg {
+  width: 100%;
+  max-width: 300px;
+  height: 4px;
+  background-color: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.s3-upload-progress-fill {
+  height: 100%;
+  background-color: var(--accent-purple);
+  transition: width 0.2s ease;
+}
+
+.s3-upload-success-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  color: var(--color-success);
+  padding: 16px;
+}
+
+.s3-upload-success-text {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Objects Table */
+.s3-objects-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.s3-objects-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.s3-objects-card-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.s3-objects-card-summary {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.s3-file-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.s3-file-name-text {
+  font-weight: 500;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.s3-date-cell {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.s3-storage-class-badge {
+  font-size: 10px;
+  background-color: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+}
+
+.s3-empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px;
+}

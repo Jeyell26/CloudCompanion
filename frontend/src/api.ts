@@ -11,6 +11,8 @@ export function registerBackendStatusListener(callback: (connected: boolean) => 
   callback(isBackendConnected);
 }
 
+// TODO: check this frontend mock simulation, edit it for backend compatibility
+
 // Simulated memory store for mock mode
 const mockStore: {
   ec2: EC2Instance[];
@@ -81,7 +83,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   try {
     const response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers });
-    
+
     if (!isBackendConnected) {
       isBackendConnected = true;
       if (onBackendStatusChange) onBackendStatusChange(true);
@@ -312,7 +314,7 @@ export async function getLogs(groupName: string, filter: string = '', limit: num
 
     const groupLogs = sampleLogs[groupName] || ['No logs found for this group'];
     const now = Date.now();
-    
+
     const events = groupLogs.map((msg, index) => ({
       timestamp: now - (groupLogs.length - index) * 60000,
       message: msg
@@ -349,15 +351,15 @@ export async function uploadS3ObjectSimulate(bucketName: string, fileName: strin
     size: fileSize,
     lastModified: new Date().toISOString()
   };
-  
+
   if (!mockStore.s3Objects[bucketName]) {
     mockStore.s3Objects[bucketName] = [];
   }
-  
+
   // Prevent duplicate keys
   mockStore.s3Objects[bucketName] = mockStore.s3Objects[bucketName].filter(o => o.key !== fileName);
   mockStore.s3Objects[bucketName].push(newObj);
-  
+
   return newObj;
 }
 

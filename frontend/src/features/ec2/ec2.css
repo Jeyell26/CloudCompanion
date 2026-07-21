@@ -1,0 +1,140 @@
+/* EC2 Feature Styles */
+
+.ec2-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ec2-layout-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+/* Table Row Highlights */
+.ec2-table-row {
+  cursor: pointer;
+}
+
+.ec2-table-row.selected {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.ec2-table-row.selected:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Detail Cell Helpers */
+.ec2-cell-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.ec2-cell-id {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.ec2-ip-display {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* CPU utilization visual elements */
+.ec2-cpu-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ec2-cpu-bar-bg {
+  flex-grow: 1;
+  height: 4px;
+  width: 50px;
+  background-color: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.ec2-cpu-bar-fill {
+  height: 100%;
+  background-color: var(--accent-purple);
+}
+
+.ec2-cpu-percentage {
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+/* Actions Column Alignment */
+.ec2-actions-cell {
+  text-align: right;
+}
+
+/* EC2 Inspector Card */
+.ec2-inspector-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ec2-inspector-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+}
+
+.ec2-inspector-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ec2-inspector-subtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.ec2-inspector-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ec2-inspector-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.ec2-inspector-label {
+  color: var(--text-secondary);
+}
+
+.ec2-inspector-value {
+  font-weight: 600;
+}
+
+.ec2-inspector-value-code {
+  font-size: 11px;
+}
+
+.ec2-inspector-billing-box {
+  margin-top: auto;
+  background-color: var(--bg-tertiary);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.ec2-inspector-billing-cost {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}

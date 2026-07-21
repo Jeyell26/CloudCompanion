@@ -1,9 +1,10 @@
+
 import { useState, useEffect, useRef } from 'react';
-import type { IntegrationStatus } from '../types';
-import { getIntegrationStatus } from '../api';
+import type { IntegrationStatus } from '../../types';
+import { getIntegrationStatus } from '../../api';
 import { Globe, Radio, Send, RefreshCw, Layers, Terminal } from 'lucide-react';
 
-export default function IntegrationsPanel() {
+function Integrations() {
   const [status, setStatus] = useState<IntegrationStatus | null>(null);
   const [mqttLogs, setMqttLogs] = useState<string[]>([]);
   const [manualTopic, setManualTopic] = useState('devices/custom/data');
@@ -34,7 +35,7 @@ export default function IntegrationsPanel() {
       const dev = devices[Math.floor(Math.random() * devices.length)];
       const temp = (Math.random() * 8 + 18).toFixed(2);
       const battery = Math.floor(Math.random() * 20 + 80);
-      
+
       const lines = [
         `[${time}] [MQTT] [PUB] clientId: ${dev} | topic: devices/${dev}/telemetry | QoS: 0 | payload: {"temperature":${temp},"battery":${battery}}`,
         `[${time}] [MQTT] [SUB] clientId: ${dev} | topic: commands/${dev}/control | QoS: 1`,
@@ -59,7 +60,7 @@ export default function IntegrationsPanel() {
   const handlePublish = (e: React.FormEvent) => {
     e.preventDefault();
     const time = new Date().toLocaleTimeString();
-    
+
     // Validate JSON
     try {
       JSON.parse(manualPayload);
@@ -69,7 +70,7 @@ export default function IntegrationsPanel() {
     }
 
     const pubLine = `[${time}] [MQTT] [PUB] clientId: CompanionDashboardConsole | topic: ${manualTopic} | QoS: 1 | payload: ${manualPayload}`;
-    
+
     setMqttLogs(prev => [...prev, pubLine]);
     if (status) {
       setStatus({
@@ -240,3 +241,5 @@ export default function IntegrationsPanel() {
     </div>
   );
 }
+
+export default Integrations

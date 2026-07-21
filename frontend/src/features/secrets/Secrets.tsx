@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import type { SecretMetadata } from '../types';
-import { getSecretsMetadata, getSecretValue } from '../api';
+import type { SecretMetadata } from '../../types';
+import { getSecretsMetadata, getSecretValue } from '../../api';
 import { Shield, Eye, EyeOff, Loader2, Copy, Check, Lock } from 'lucide-react';
 
-export default function SecretsPanel() {
+function SecretsPanel() {
   const [secrets, setSecrets] = useState<SecretMetadata[]>([]);
   const [revealedSecretName, setRevealedSecretName] = useState<string | null>(null);
   const [secretValue, setSecretValue] = useState<string>('');
@@ -137,3 +137,5 @@ export default function SecretsPanel() {
     </div>
   );
 }
+
+export default SecretsPanel;
