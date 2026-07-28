@@ -1,0 +1,126 @@
+.main-page {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+.main-selector {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at 50% 0%, rgba(139,92,246,0.06) 0%, transparent 60%);
+}
+
+.main-selector-inner {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.main-selector-heading h2 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.main-selector-heading p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.main-mode-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  transition: opacity 0.2s;
+}
+
+.main-mode-buttons.disabled { opacity: 0.4; pointer-events: none; }
+
+.mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-sans);
+}
+
+.mode-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.mode-btn:disabled { cursor: not-allowed; }
+
+.mode-btn.live-btn:not(:disabled):hover {
+  border-color: rgba(16,185,129,0.4);
+  box-shadow: 0 8px 24px rgba(16,185,129,0.1);
+}
+
+.mode-btn.range-btn:not(:disabled):hover {
+  border-color: rgba(139,92,246,0.4);
+  box-shadow: 0 8px 24px rgba(139,92,246,0.1);
+}
+
+.mode-btn-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.live-btn .mode-btn-icon {
+  background: rgba(16,185,129,0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+.range-btn .mode-btn-icon {
+  background: rgba(139,92,246,0.1);
+  color: var(--accent-purple);
+  border: 1px solid rgba(139,92,246,0.2);
+}
+
+.mode-btn-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mode-btn-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.mode-btn-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.main-select-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}

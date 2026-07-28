@@ -1,0 +1,258 @@
+/* ── Log Viewer layout ───────────────────────────────────────────────────── */
+
+.log-viewer {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Log stream column (left, grows to fill space) */
+.log-stream-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  background: #080a0f;
+}
+
+/* ── Search bar ──────────────────────────────────────────────────────────── */
+
+.log-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: #0d0f14;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.log-search-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.log-search-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  min-width: 0;
+}
+
+.log-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.log-search-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.log-search-clear {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  border-radius: 3px;
+  transition: color 0.12s;
+  flex-shrink: 0;
+}
+
+.log-search-clear:hover { color: var(--color-danger); }
+
+.log-search-highlight {
+  background: rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── Log stream ──────────────────────────────────────────────────────────── */
+
+.log-stream {
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 8px 0;
+}
+
+.log-stream-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 13px;
+  font-family: var(--font-sans);
+}
+
+.log-stream-empty strong {
+  color: var(--text-secondary);
+  font-style: normal;
+}
+
+/* ── Log lines ───────────────────────────────────────────────────────────── */
+
+.log-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 16px;
+  border-left: 2px solid transparent;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.log-line:hover { background: rgba(255, 255, 255, 0.025); }
+
+.log-line.log-focused {
+  background: color-mix(in srgb, var(--focus-line-color, #8b5cf6) 8%, transparent) !important;
+  border-left-color: var(--focus-line-color, var(--accent-purple)) !important;
+}
+
+.log-line.level-error { border-left-color: var(--color-danger); }
+.log-line.level-warn  { border-left-color: var(--color-warning); }
+
+.log-ts {
+  color: #4b5563;
+  flex-shrink: 0;
+  font-size: 11px;
+  min-width: 160px;
+}
+
+.log-group-tag {
+  color: var(--accent-cyan);
+  opacity: 0.6;
+  font-size: 10px;
+  flex-shrink: 0;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-level-tag {
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+  min-width: 44px;
+  text-align: center;
+  border-radius: 3px;
+  padding: 0 4px;
+}
+
+.log-level-tag.level-error   { color: var(--color-danger);  background: rgba(239, 68, 68, 0.08); }
+.log-level-tag.level-warn    { color: var(--color-warning); background: rgba(245, 158, 11, 0.08); }
+.log-level-tag.level-info    { color: var(--color-info);    background: rgba(59, 130, 246, 0.08); }
+.log-level-tag.level-debug   { color: var(--text-muted); }
+.log-level-tag.level-default { color: var(--text-muted); }
+
+.log-msg {
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-all;
+  flex: 1;
+}
+
+.log-line.level-error .log-msg { color: #fca5a5; }
+.log-line.level-warn  .log-msg { color: #fcd34d; }
+.log-line.level-debug .log-msg { color: #6b7280; }
+
+/* ── Ignored group ───────────────────────────────────────────────────────── */
+
+.log-ignored-group {
+  border-top: 1px dashed rgba(107, 114, 128, 0.15);
+  border-bottom: 1px dashed rgba(107, 114, 128, 0.15);
+  margin: 2px 0;
+}
+
+.log-ignored-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 16px;
+  background: rgba(107, 114, 128, 0.05);
+}
+
+.log-ignored-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.log-ignored-expand {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  padding: 0;
+  transition: color 0.12s;
+}
+
+.log-ignored-expand:hover { color: var(--text-secondary); }
+
+.log-ignored-detail {
+  border-top: 1px dashed rgba(107, 114, 128, 0.1);
+  padding: 4px 0;
+}
+
+/* ── Drag divider ────────────────────────────────────────────────────────── */
+
+.log-divider {
+  width: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  cursor: col-resize;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.log-divider:hover,
+.log-divider:active {
+  background: rgba(139, 92, 246, 0.08);
+  color: var(--accent-purple);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.log-divider-icon {
+  opacity: 0.5;
+  transition: opacity 0.15s;
+}
+
+.log-divider:hover .log-divider-icon { opacity: 1; }
+
+/* ── Tracker panel (right, fixed width set inline) ───────────────────────── */
+
+.log-tracker-panel {
+  flex-shrink: 0;
+  border-left: none; /* divider handles the border */
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 180px;
+  max-width: 600px;
+}
