@@ -1,0 +1,43 @@
+// internal/handlers/loggroups.go — Log group listing handler
+//
+// Endpoints:
+//   GET /api/log-groups
+//     Headers: Authorization: Bearer <jwt>
+//     Action:  Fetch all CloudWatch log groups visible to the IAM principal
+//              encoded in the JWT.
+//     Returns: [{ "name": "...", "arn": "...", "storedBytes": N, "retentionDays": N }, ...]
+//     Errors:  401 if token missing/invalid, 500 on AWS errors
+//
+// Dependencies:
+//   - middleware.GetClaims(r) to extract credentials from JWT context
+//   - services.LogGroupsService.ListLogGroups(ctx, region, accessKeyID, secretKey)
+
+package handlers
+
+import (
+	"net/http"
+
+	"github.com/Jeyell26/CloudCompanion/backend/internal/services"
+)
+
+// LogGroupsHandler handles log group listing HTTP requests.
+type LogGroupsHandler struct {
+	svc *services.LogGroupsService
+}
+
+// NewLogGroupsHandler creates a new log groups handler.
+func NewLogGroupsHandler(svc *services.LogGroupsService) *LogGroupsHandler {
+	return &LogGroupsHandler{svc: svc}
+}
+
+// List handles GET /api/log-groups
+//
+// TODO: implement
+//   1. Extract claims from context via middleware.GetClaims(r)
+//   2. Call s.svc.ListLogGroups(ctx, claims.Region, claims.AccessKeyID, claims.SecretKey)
+//   3. Return JSON array of LogGroup
+//   4. On error → return 500 JSON
+func (h *LogGroupsHandler) List(w http.ResponseWriter, r *http.Request) {
+	// TODO
+	http.Error(w, `{"error":"not implemented"}`, http.StatusNotImplemented)
+}
