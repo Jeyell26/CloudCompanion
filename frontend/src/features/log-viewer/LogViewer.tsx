@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, JSX } from 'react';
 import { Search, X, GripVertical } from 'lucide-react';
 import Trackers from '../trackers/Trackers';
 import ActiveFilters from '../filters/ActiveFilters';
@@ -103,7 +103,12 @@ export default function LogViewer({
   }, [searchLower]);
 
   const isIgnored = useCallback((msg: string) => {
-    return ignoreRules.some(r => msg.includes(r.pattern.replace(/{[^}]+}/g, '')));
+    return ignoreRules.some(r => {
+      if (r.isRegex) {
+        try { return new RegExp(r.pattern).test(msg); } catch (e) { return false; }
+      }
+      return msg.includes(r.pattern.replace(/{[^}]+}/g, ''));
+    });
   }, [ignoreRules]);
 
   // Count search matches across all visible (non-ignored) logs
@@ -245,7 +250,12 @@ function LogLine({
   const level = getLogLevel(log.message);
   const timeStr = new Date(log.timestamp).toISOString().replace('T', ' ').split('.')[0];
   const groupShort = log.logGroup.split('/').pop() ?? log.logGroup;
-  const matchedFocusRule = focusRules.find(r => log.message.includes(r.pattern.replace(/{[^}]+}/g, '')));
+  const matchedFocusRule = focusRules.find(r => {
+    if (r.isRegex) {
+      try { return new RegExp(r.pattern).test(log.message); } catch (e) { return false; }
+    }
+    return log.message.includes(r.pattern.replace(/{[^}]+}/g, ''));
+  });
 
   return (
     <div

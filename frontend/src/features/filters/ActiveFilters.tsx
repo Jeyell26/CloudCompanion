@@ -23,6 +23,7 @@ export default function ActiveFilters({ rules, onNavigate, onRemove }: ActiveFil
           <div className="af-rule-icon">
             {rule.mode === 'focus' ? <ScanSearch size={12}/> : <EyeOff size={12}/>}
           </div>
+          {rule.isRegex && <span className="af-regex-badge" title="Regular Expression">.*</span>}
           <span className="af-rule-pattern" title={rule.pattern}>{rule.pattern}</span>
 
           {rule.mode === 'focus' && rule.occurrenceIndices.length > 0 && (

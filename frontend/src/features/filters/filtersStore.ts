@@ -6,19 +6,21 @@ export function addOrUpdateFilter(
   pattern: string,
   mode: FilterMode,
   logIndices?: number[],
+  isRegex?: boolean,
 ): FilterRule[] {
   const focusRules = rules.filter(r => r.mode === 'focus');
   const existing = rules.find(r => r.pattern === pattern);
   if (existing) {
-    if (existing.mode === mode) return rules; // no change
+    if (existing.mode === mode && existing.isRegex === isRegex) return rules; // no change
     return rules.map(r =>
-      r.pattern === pattern ? { ...r, mode, color: mode === 'focus' ? getFocusColor(focusRules.length) : undefined } : r
+      r.pattern === pattern ? { ...r, mode, isRegex, color: mode === 'focus' ? getFocusColor(focusRules.length) : undefined } : r
     );
   }
   const newRule: FilterRule = {
     id: `filter_${Date.now()}_${Math.random().toString(36).substr(2,5)}`,
     pattern,
     mode,
+    isRegex,
     color: mode === 'focus' ? getFocusColor(focusRules.length) : undefined,
     occurrenceIndices: logIndices ?? [],
     currentOccurrence: 0,

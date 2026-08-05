@@ -40,6 +40,18 @@
 .af-rule.focus .af-rule-icon { color: var(--rule-color, var(--accent-purple)); }
 .af-rule.ignore .af-rule-icon { color: var(--text-muted); }
 
+.af-regex-badge {
+  background: rgba(139,92,246,0.15);
+  border: 1px solid var(--accent-purple);
+  color: var(--accent-purple);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
 .af-rule-pattern {
   font-family: var(--font-mono);
   font-size: 11px;
