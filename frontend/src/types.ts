@@ -53,6 +53,7 @@ export interface FilterRule {
   id: string;
   pattern: string;
   mode: FilterMode;
+  isRegex?: boolean;
   color?: string; // only for focus
   occurrenceIndices: number[]; // indices in the log buffer
   currentOccurrence: number; // for prev/next navigation
