@@ -2,27 +2,14 @@
 //
 // Fetches all log groups the IAM principal has access to by paginating
 // DescribeLogGroups until there is no NextToken.
-<<<<<<< Updated upstream
-//
-// AWS SDK command: DescribeLogGroups
-//   Input:  { NextToken? }
-//   Output: { LogGroups: [{ LogGroupName, Arn, StoredBytes, RetentionInDays }], NextToken? }
-//
-// Frontend LogGroup shape expected:
-//   { name: string, arn?: string, storedBytes?: number, retentionDays?: number }
-=======
->>>>>>> Stashed changes
 
 package services
 
 import (
 	"context"
-<<<<<<< Updated upstream
-=======
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
->>>>>>> Stashed changes
 )
 
 // LogGroup matches the frontend's expected shape.
@@ -44,18 +31,6 @@ func NewLogGroupsService(aws *AWSClient) *LogGroupsService {
 }
 
 // ListLogGroups fetches all CloudWatch log groups for the given credentials.
-<<<<<<< Updated upstream
-//
-// TODO: implement
-//   1. Create CW client via s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey)
-//   2. Loop: send DescribeLogGroupsInput{ NextToken }, accumulate results
-//   3. Break when result.NextToken == nil
-//   4. Map each AWS log group to LogGroup{ Name, ARN, StoredBytes, RetentionDays }
-//   5. Return the full slice
-func (s *LogGroupsService) ListLogGroups(ctx context.Context, region, accessKeyID, secretKey string) ([]LogGroup, error) {
-	// TODO
-	return nil, nil
-=======
 func (s *LogGroupsService) ListLogGroups(ctx context.Context, region, accessKeyID, secretKey, sessionToken string) ([]LogGroup, error) {
 	client := s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken)
 
@@ -91,5 +66,4 @@ func (s *LogGroupsService) ListLogGroups(ctx context.Context, region, accessKeyI
 	}
 
 	return logGroup, nil
->>>>>>> Stashed changes
 }

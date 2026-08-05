@@ -26,14 +26,6 @@ type CallerIdentity struct {
 
 // AuthService handles credential validation against AWS STS.
 type AuthService struct {
-<<<<<<< Updated upstream
-	aws *AWSClient
-}
-
-// NewAuthService creates a new auth service.
-func NewAuthService(aws *AWSClient) *AuthService {
-	return &AuthService{aws: aws}
-=======
 	aws    *AWSClient
 	mocker *MockerService
 }
@@ -41,7 +33,6 @@ func NewAuthService(aws *AWSClient) *AuthService {
 // NewAuthService creates a new auth service with optional MockerService for LocalStack.
 func NewAuthService(aws *AWSClient, mocker *MockerService) *AuthService {
 	return &AuthService{aws: aws, mocker: mocker}
->>>>>>> Stashed changes
 }
 
 // ValidateCredentials verifies IAM credentials by calling STS GetCallerIdentity.
@@ -52,14 +43,11 @@ func (s *AuthService) ValidateCredentials(ctx context.Context, accessKeyID, secr
 		return nil, err
 	}
 
-<<<<<<< Updated upstream
-=======
 	// Trigger LocalStack mock auto-population if using test/localstack credentials
 	if s.mocker != nil && IsLocalStackCredential(accessKeyID) {
 		_ = s.mocker.SeedAtLogin(ctx, region, accessKeyID, secretKey, sessionToken)
 	}
 
->>>>>>> Stashed changes
 	return &CallerIdentity{
 		AccountID: aws.ToString(callerIdentityOutput.Account),
 		ARN:       aws.ToString(callerIdentityOutput.Arn),

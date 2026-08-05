@@ -15,15 +15,10 @@
 package handlers
 
 import (
-<<<<<<< Updated upstream
-	"net/http"
-
-=======
 	"encoding/json"
 	"net/http"
 
 	"github.com/Jeyell26/CloudCompanion/backend/internal/middleware"
->>>>>>> Stashed changes
 	"github.com/Jeyell26/CloudCompanion/backend/internal/services"
 )
 
@@ -38,17 +33,6 @@ func NewLogGroupsHandler(svc *services.LogGroupsService) *LogGroupsHandler {
 }
 
 // List handles GET /api/log-groups
-<<<<<<< Updated upstream
-//
-// TODO: implement
-//   1. Extract claims from context via middleware.GetClaims(r)
-//   2. Call s.svc.ListLogGroups(ctx, claims.Region, claims.AccessKeyID, claims.SecretKey)
-//   3. Return JSON array of LogGroup
-//   4. On error → return 500 JSON
-func (h *LogGroupsHandler) List(w http.ResponseWriter, r *http.Request) {
-	// TODO
-	http.Error(w, `{"error":"not implemented"}`, http.StatusNotImplemented)
-=======
 func (h *LogGroupsHandler) List(w http.ResponseWriter, r *http.Request) {
 	// extract claims from context
 	claims, ok := r.Context().Value(middleware.ClaimsKey).(*middleware.Claims)
@@ -71,5 +55,4 @@ func (h *LogGroupsHandler) List(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
 		return
 	}
->>>>>>> Stashed changes
 }

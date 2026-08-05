@@ -7,10 +7,7 @@ package services
 
 import (
 	"os"
-<<<<<<< Updated upstream
-=======
 	"strings"
->>>>>>> Stashed changes
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -32,15 +29,6 @@ func NewAWSClient() *AWSClient {
 	}
 }
 
-<<<<<<< Updated upstream
-// CloudWatchLogsClient creates a CloudWatch Logs client for the given region and credentials.
-func (a *AWSClient) CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken string) *cloudwatchlogs.Client {
-	client := credentials.NewStaticCredentialsProvider(accessKeyID, secretKey, sessionToken)
-
-	opts := cloudwatchlogs.Options{
-		Region:      region,
-		Credentials: aws.NewCredentialsCache(client),
-=======
 // IsLocalStackCredential returns true if the environment or key represents LocalStack mode.
 func IsLocalStackCredential(accessKeyID string) bool {
 	if os.Getenv("AWS_ENDPOINT") != "" {
@@ -69,7 +57,6 @@ func (a *AWSClient) CloudWatchLogsClient(region, accessKeyID, secretKey, session
 		Region:       region,
 		Credentials:  aws.NewCredentialsCache(client),
 		BaseEndpoint: endpoint,
->>>>>>> Stashed changes
 	}
 
 	return cloudwatchlogs.New(opts)
@@ -77,13 +64,6 @@ func (a *AWSClient) CloudWatchLogsClient(region, accessKeyID, secretKey, session
 
 // STSClient creates an STS client for the given region and credentials.
 func (a *AWSClient) STSClient(region, accessKeyID, secretKey, sessionToken string) *sts.Client {
-<<<<<<< Updated upstream
-	client := credentials.NewStaticCredentialsProvider(accessKeyID, secretKey, sessionToken)
-
-	opts := sts.Options{
-		Region:      region,
-		Credentials: aws.NewCredentialsCache(client),
-=======
 	// Mock check
 	if IsLocalStackCredential(accessKeyID) {
 		if a.endpoint == "" {
@@ -101,7 +81,6 @@ func (a *AWSClient) STSClient(region, accessKeyID, secretKey, sessionToken strin
 		Region:       region,
 		Credentials:  aws.NewCredentialsCache(client),
 		BaseEndpoint: endpoint,
->>>>>>> Stashed changes
 	}
 
 	return sts.New(opts)

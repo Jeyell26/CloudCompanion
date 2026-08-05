@@ -20,14 +20,6 @@ package services
 
 import (
 	"context"
-<<<<<<< Updated upstream
-)
-
-// RangeQueryResult represents one page of range query results.
-type RangeQueryResult struct {
-	Events    []LogEvent `json:"events"`
-	NextToken string     `json:"nextToken,omitempty"`
-=======
 	"fmt"
 	"sort"
 
@@ -37,7 +29,6 @@ type RangeQueryResult struct {
 
 type RangeQueryResult struct {
 	Events []LogEvent `json:"events"`
->>>>>>> Stashed changes
 }
 
 // RangeQueryService handles CloudWatch Logs historical queries.
@@ -51,23 +42,6 @@ func NewRangeQueryService(aws *AWSClient) *RangeQueryService {
 }
 
 // QueryRange fetches log events within a time range for the given log groups.
-<<<<<<< Updated upstream
-//
-// TODO: implement
-//   1. Create CW client via s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey)
-//   2. Send FilterLogEventsInput{ LogGroupNames: groups, StartTime: &startMs, EndTime: &endMs, NextToken }
-//   3. Map each AWS event to LogEvent:
-//       ID            → EventId
-//       Timestamp     → Timestamp (already ms)
-//       LogGroup      → derive from the group list (AWS returns LogStreamName, not group)
-//       LogStream     → LogStreamName
-//       Message       → Message
-//       IngestionTime → IngestionTime
-//   4. Return RangeQueryResult{ Events, NextToken }
-func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, startMs, endMs int64, nextToken, region, accessKeyID, secretKey string) (*RangeQueryResult, error) {
-	// TODO
-	return nil, nil
-=======
 func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, startMs, endMs int64, region, accessKeyID, secretKey, sessionToken string) (*RangeQueryResult, error) {
 	// client building
 	client := s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken)
@@ -110,5 +84,4 @@ func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, sta
 	})
 
 	return &RangeQueryResult{Events: logEvent}, nil
->>>>>>> Stashed changes
 }
