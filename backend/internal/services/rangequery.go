@@ -20,12 +20,15 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"sort"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 )
 
-// RangeQueryResult represents one page of range query results.
 type RangeQueryResult struct {
-	Events    []LogEvent `json:"events"`
-	NextToken string     `json:"nextToken,omitempty"`
+	Events []LogEvent `json:"events"`
 }
 
 // RangeQueryService handles CloudWatch Logs historical queries.
@@ -39,19 +42,46 @@ func NewRangeQueryService(aws *AWSClient) *RangeQueryService {
 }
 
 // QueryRange fetches log events within a time range for the given log groups.
-//
-// TODO: implement
-//   1. Create CW client via s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey)
-//   2. Send FilterLogEventsInput{ LogGroupNames: groups, StartTime: &startMs, EndTime: &endMs, NextToken }
-//   3. Map each AWS event to LogEvent:
-//       ID            → EventId
-//       Timestamp     → Timestamp (already ms)
-//       LogGroup      → derive from the group list (AWS returns LogStreamName, not group)
-//       LogStream     → LogStreamName
-//       Message       → Message
-//       IngestionTime → IngestionTime
-//   4. Return RangeQueryResult{ Events, NextToken }
-func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, startMs, endMs int64, nextToken, region, accessKeyID, secretKey string) (*RangeQueryResult, error) {
-	// TODO
-	return nil, nil
+func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, startMs, endMs int64, region, accessKeyID, secretKey, sessionToken string) (*RangeQueryResult, error) {
+	// client building
+	client := s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken)
+
+	var logEvent []LogEvent
+
+	for _, group := range groups {
+		// input with group
+		filterLogEventsInput := cloudwatchlogs.FilterLogEventsInput{
+			LogGroupName: aws.String(group),
+			StartTime:    aws.Int64(startMs),
+			EndTime:      aws.Int64(endMs),
+		}
+
+		// gather output
+		filterLogEventsOutput, err := client.FilterLogEvents(ctx, &filterLogEventsInput)
+		if err != nil {
+			return nil, err
+		}
+		// reject if exceeded 10k messages
+		if filterLogEventsOutput.NextToken != nil {
+			return nil, fmt.Errorf("Log group %s exceeded 10 000 messages", group)
+		}
+
+		// map received log group
+		for _, item := range filterLogEventsOutput.Events {
+			logEvent = append(logEvent, LogEvent{
+				ID:            aws.ToString(item.EventId),
+				Timestamp:     aws.ToInt64(item.Timestamp),
+				LogGroup:      group,
+				LogStream:     aws.ToString(item.LogStreamName),
+				Message:       aws.ToString(item.Message),
+				IngestionTime: aws.ToInt64(item.IngestionTime),
+			})
+		}
+	}
+
+	sort.Slice(logEvent, func(i, j int) bool {
+		return logEvent[i].Timestamp < logEvent[j].Timestamp
+	})
+
+	return &RangeQueryResult{Events: logEvent}, nil
 }

@@ -15,7 +15,10 @@
 package middleware
 
 import (
+	"context"
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -26,11 +29,12 @@ const ClaimsKey contextKey = "claims"
 
 // Claims represents the JWT payload issued at login.
 type Claims struct {
-	AccessKeyID string `json:"accessKeyId"`
-	SecretKey   string `json:"secretAccessKey"`
-	Region      string `json:"region"`
-	AccountID   string `json:"accountId,omitempty"`
-	ARN         string `json:"arn,omitempty"`
+	AccessKeyID  string `json:"accessKeyId"`
+	SecretKey    string `json:"secretAccessKey"`
+	Region       string `json:"region"`
+	AccountID    string `json:"accountId,omitempty"`
+	ARN          string `json:"arn,omitempty"`
+	SessionToken string `json:"arn,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -45,32 +49,54 @@ func NewAuthMiddleware(secret string) *AuthMiddleware {
 }
 
 // Verify is a chi middleware that validates the Authorization Bearer token.
-//
-// TODO: implement
-//   1. Read the Authorization header
-//   2. Extract the Bearer token
-//   3. Parse and validate with jwt.ParseWithClaims(tokenStr, &Claims{}, keyFunc)
-//   4. Store claims in request context via context.WithValue(r.Context(), ClaimsKey, claims)
-//   5. Call next.ServeHTTP on success, return 401 JSON on any failure
 func (a *AuthMiddleware) Verify(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// TODO
-		http.Error(w, `{"error":"not implemented"}`, http.StatusNotImplemented)
+		bearerToken := r.Header.Get("Authorization")
+		bearer := strings.TrimPrefix(bearerToken, "Bearer ")
+
+		// keyfunc to insert token
+		keyfunc := func(token *jwt.Token) (interface{}, error) {
+			return a.secret, nil
+		}
+
+		token, err := jwt.ParseWithClaims(bearer, &Claims{}, keyfunc)
+		// Token Check
+		if err != nil || !token.Valid {
+			http.Error(w, `{"error":"authentication error"}`, http.StatusUnauthorized)
+			return
+		}
+
+		// Unwrap and structure check
+		claims, ok := token.Claims.(*Claims)
+		if !ok {
+			http.Error(w, `{"error":"authentication error"}`, http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), ClaimsKey, claims)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
 // VerifyQueryToken validates a JWT passed as a query parameter (for SSE/EventSource).
-//
-// TODO: implement
-//   1. Parse tokenStr with jwt.ParseWithClaims
-//   2. Return *Claims on success, error on failure
-func (a *AuthMiddleware) VerifyQueryToken(tokenStr string) (*Claims, error) {
-	// TODO
-	return nil, nil
-}
+func (a *AuthMiddleware) VerifyQueryToken(bearer string) (*Claims, error) {
+	// keyfunc to insert token
+	keyfunc := func(token *jwt.Token) (interface{}, error) {
+		return a.secret, nil
+	}
 
-// GetClaims extracts the JWT claims from the request context.
-func GetClaims(r *http.Request) *Claims {
-	claims, _ := r.Context().Value(ClaimsKey).(*Claims)
-	return claims
+	token, err := jwt.ParseWithClaims(bearer, &Claims{}, keyfunc)
+	// Token Check
+	if err != nil || !token.Valid {
+		return nil, err
+	}
+
+	// Unwrap and structure check
+	claims, ok := token.Claims.(*Claims)
+	if !ok {
+		return nil, errors.New("invalid claims structure")
+	}
+
+	return claims, nil
 }
