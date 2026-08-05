@@ -1,1 +1,4 @@
 /node_modules
+/frontend/wget-log
+/frontend/wget-log.1
+/localstack_data/cache
