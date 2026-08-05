@@ -25,7 +25,7 @@ export default function LiveTail({ selectedGroups, settings, onStop }: LiveTailP
   // Keep a stable ref to logs so the recompute effect doesn't re-run on every new log
   const logsRef = useRef<LogEvent[]>([]);
 
-  const { logs, addLog, clearLogs, showOverflowPrompt, handleOverflowDrop, handleOverflowDownload } = useLogBuffer(
+  const { logs, addLog, showOverflowPrompt, handleOverflowDrop, handleOverflowDownload } = useLogBuffer(
     settings.logBufferLimit,
     settings.overflowBehavior,
   );

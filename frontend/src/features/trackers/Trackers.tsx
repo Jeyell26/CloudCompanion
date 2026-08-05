@@ -67,7 +67,7 @@ export default function Trackers({ trackerState, filterRules, onSetFilter, onCle
           <p className="tracker-empty">Waiting for logs...</p>
         ) : (
           <div className="tracker-list">
-            {trackerState.mostCommon.map((entry, i) => (
+            {trackerState.mostCommon.map((entry) => (
               <TrackerItem
                 key={entry.pattern}
                 pattern={entry.pattern}

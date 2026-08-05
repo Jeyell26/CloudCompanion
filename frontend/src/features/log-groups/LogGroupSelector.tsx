@@ -30,7 +30,7 @@ export default function LogGroupSelector({ selected, onChange }: LogGroupSelecto
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const filtered = groups.filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
+  const filtered = (groups || []).filter(g => g.name.toLowerCase().includes(search.toLowerCase()));
   const isSelected = (g: LogGroup) => selected.some(s => s.name === g.name);
 
   const toggle = (g: LogGroup) => {
