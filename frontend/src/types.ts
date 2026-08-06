@@ -47,7 +47,7 @@ export interface TrackerState {
 }
 
 // Filters
-export type FilterMode = 'focus' | 'ignore';
+export type FilterMode = 'focus' | 'ignore' | 'group';
 
 export interface FilterRule {
   id: string;

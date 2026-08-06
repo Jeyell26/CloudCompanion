@@ -208,6 +208,7 @@
   background: rgba(255,255,255,0.05);
 }
 
-.tracker-save-btn.focus:hover { color: var(--accent-purple); background: rgba(139,92,246,0.15); }
-.tracker-save-btn.ignore:hover { color: var(--color-danger); background: rgba(239,68,68,0.12); }
+.tracker-save-btn.group:hover, .tracker-save-btn.group.always-tint { color: var(--accent-green, #10b981); background: rgba(16,185,129,0.15); }
+.tracker-save-btn.focus:hover, .tracker-save-btn.focus.always-tint { color: var(--accent-purple); background: rgba(139,92,246,0.15); }
+.tracker-save-btn.ignore:hover, .tracker-save-btn.ignore.always-tint { color: var(--color-danger); background: rgba(239,68,68,0.12); }
 .tracker-cancel-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.1); }

@@ -2,13 +2,15 @@ import { useEffect, useRef, useCallback, useState, JSX } from 'react';
 import { Search, X, GripVertical } from 'lucide-react';
 import Trackers from '../trackers/Trackers';
 import ActiveFilters from '../filters/ActiveFilters';
-import type { LogEvent, TrackerState, FilterRule, FilterMode } from '../../types';
+import { matchesRule } from '../trackers/trackerEngine';
+import type { LogEvent, TrackerState, FilterRule, FilterMode, NormalizationRule } from '../../types';
 import './LogViewer.css';
 
 interface LogViewerProps {
   logs: LogEvent[];
   trackerState: TrackerState;
   filterRules: FilterRule[];
+  normalizationRules: NormalizationRule[];
   autoScroll: boolean;
   onScrollUp: () => void;
   onSetFilter: (pattern: string, mode: FilterMode) => void;
@@ -30,7 +32,7 @@ const MAX_PANEL_WIDTH = 600;
 const DEFAULT_PANEL_WIDTH = 280;
 
 export default function LogViewer({
-  logs, trackerState, filterRules, autoScroll, onScrollUp,
+  logs, trackerState, filterRules, normalizationRules, autoScroll, onScrollUp,
   onSetFilter, onClearFilter, onNavigate,
 }: LogViewerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -103,13 +105,8 @@ export default function LogViewer({
   }, [searchLower]);
 
   const isIgnored = useCallback((msg: string) => {
-    return ignoreRules.some(r => {
-      if (r.isRegex) {
-        try { return new RegExp(r.pattern).test(msg); } catch (e) { return false; }
-      }
-      return msg.includes(r.pattern.replace(/{[^}]+}/g, ''));
-    });
-  }, [ignoreRules]);
+    return ignoreRules.some(r => matchesRule(msg, r, normalizationRules));
+  }, [ignoreRules, normalizationRules]);
 
   // Count search matches across all visible (non-ignored) logs
   const searchMatchCount = search
@@ -129,7 +126,7 @@ export default function LogViewer({
       while (j < logs.length && isIgnored(logs[j].message)) j++;
       const count = j - i;
       rendered.push(
-        <IgnoredGroup key={`ignore-${i}`} count={count} logs={logs.slice(i, j)} startIndex={i} focusRules={focusRules} searchTerm={search} />,
+            <IgnoredGroup key={`ignore-${i}`} count={count} logs={logs.slice(i, j)} startIndex={i} focusRules={focusRules} normalizationRules={normalizationRules} searchTerm={search} />,
       );
       i = j;
     } else {
@@ -144,6 +141,7 @@ export default function LogViewer({
           log={log}
           index={i}
           focusRules={focusRules}
+          normalizationRules={normalizationRules}
           searchTerm={search}
         />,
       );
@@ -203,16 +201,17 @@ export default function LogViewer({
 
       {/* Tracker panel */}
       <div className="log-tracker-panel" style={{ width: panelWidth }}>
+        <ActiveFilters
+          rules={filterRules}
+          onNavigate={onNavigate}
+          onRemove={onClearFilter}
+          onSetFilter={onSetFilter}
+        />
         <Trackers
           trackerState={trackerState}
           filterRules={filterRules}
           onSetFilter={onSetFilter}
           onClearFilter={onClearFilter}
-        />
-        <ActiveFilters
-          rules={filterRules}
-          onNavigate={onNavigate}
-          onRemove={onClearFilter}
         />
       </div>
     </div>
@@ -240,22 +239,18 @@ function highlightText(text: string, term: string): JSX.Element {
 }
 
 function LogLine({
-  log, index, focusRules, searchTerm,
+  log, index, focusRules, normalizationRules, searchTerm,
 }: {
   log: LogEvent;
   index: number;
   focusRules: FilterRule[];
+  normalizationRules: NormalizationRule[];
   searchTerm: string;
 }) {
   const level = getLogLevel(log.message);
   const timeStr = new Date(log.timestamp).toISOString().replace('T', ' ').split('.')[0];
   const groupShort = log.logGroup.split('/').pop() ?? log.logGroup;
-  const matchedFocusRule = focusRules.find(r => {
-    if (r.isRegex) {
-      try { return new RegExp(r.pattern).test(log.message); } catch (e) { return false; }
-    }
-    return log.message.includes(r.pattern.replace(/{[^}]+}/g, ''));
-  });
+  const matchedFocusRule = focusRules.find(r => matchesRule(log.message, r, normalizationRules));
 
   return (
     <div
@@ -272,12 +267,13 @@ function LogLine({
 }
 
 function IgnoredGroup({
-  count, logs, startIndex, focusRules, searchTerm,
+  count, logs, startIndex, focusRules, normalizationRules, searchTerm,
 }: {
   count: number;
   logs: LogEvent[];
   startIndex: number;
   focusRules: FilterRule[];
+  normalizationRules: NormalizationRule[];
   searchTerm: string;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -292,7 +288,7 @@ function IgnoredGroup({
       {expanded && (
         <div className="log-ignored-detail">
           {logs.map((l, idx) => (
-            <LogLine key={l.id} log={l} index={startIndex + idx} focusRules={focusRules} searchTerm={searchTerm} />
+            <LogLine key={l.id} log={l} index={startIndex + idx} focusRules={focusRules} normalizationRules={normalizationRules} searchTerm={searchTerm} />
           ))}
         </div>
       )}

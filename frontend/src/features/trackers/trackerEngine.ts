@@ -32,6 +32,25 @@ export function normalizeMessage(
   return normalized;
 }
 
+/**
+ * Test whether a raw log message matches a filter rule.
+ * Always normalizes the raw message first so that normalization rules
+ * (e.g. \d+MB → {memory}) are applied before comparison.
+ */
+export function matchesRule(
+  rawMessage: string,
+  rule: { pattern: string; isRegex?: boolean },
+  normRules: NormalizationRule[],
+): boolean {
+  const normalized = normalizeMessage(rawMessage, normRules);
+  if (rule.isRegex) {
+    try { return new RegExp(rule.pattern).test(normalized); } catch { return false; }
+  }
+  // Plain-text: both the normalized message and the stored pattern use {variable} tokens,
+  // so a direct substring check on the normalized message is correct.
+  return normalized.includes(rule.pattern);
+}
+
 export function createTrackerState(): TrackerState {
   return {
     mostCommon: [],
@@ -46,8 +65,17 @@ export function processLog(
   state: TrackerState,
   log: LogEvent,
   settings: LogPulseSettings,
+  filterRules: FilterRule[] = [],
 ): TrackerState {
-  const pattern = normalizeMessage(log.message, settings.normalizationRules);
+  let pattern = normalizeMessage(log.message, settings.normalizationRules);
+
+  // If a filter rule matches (after normalization), count the log under the rule pattern for grouping
+  for (const rule of filterRules) {
+    if (matchesRule(log.message, rule, settings.normalizationRules)) {
+      pattern = rule.pattern;
+      break;
+    }
+  }
 
   const newFrequencyMap = { ...state.frequencyMap };
   newFrequencyMap[pattern] = (newFrequencyMap[pattern] ?? 0) + 1;
