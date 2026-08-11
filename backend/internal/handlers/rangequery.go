@@ -71,9 +71,9 @@ func (h *RangeQueryHandler) Query(w http.ResponseWriter, r *http.Request) {
 		startMs.UnixMilli(),
 		endMs.UnixMilli(),
 		claims.Region,
-		claims.AccessKeyID,
-		claims.SecretKey,
-		claims.SessionToken,
+		claims.TempAccessKeyID,
+		claims.TempSecretKey,
+		claims.TempSessionToken,
 	)
 	if err != nil {
 		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)

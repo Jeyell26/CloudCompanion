@@ -2,11 +2,13 @@
 //
 // Endpoints:
 //   POST /api/auth/login
-//     Body:   { "accessKeyId": "...", "secretAccessKey": "...", "region": "..." }
-//     Errors: 401 on invalid credentials, 500 on unexpected errors
+//     Body:   { "roleArn": "...", "externalId": "...", "region": "..." }
+//     Action: Calls sts:AssumeRole on the user's LogPulseReadRole via LogPulseAppRole.
+//             Packs the temporary credentials into a signed JWT.
+//     Errors: 401 on failed assumption, 400 on bad request, 500 on unexpected errors
 //
 // Dependencies:
-//   - services.AuthService.ValidateCredentials(ctx, accessKeyID, secretKey, region)
+//   - services.AuthService.AssumeRole(ctx, roleArn, externalId, region)
 //   - jwt.NewWithClaims to produce the session token
 //   - JWT_SECRET from environment
 
@@ -27,11 +29,11 @@ type AuthHandler struct {
 	jwtSecret string
 }
 
-type UserKeys struct {
-	AccessKeyId     string `json:"accessKeyId"`
-	SecretAccessKey string `json:"secretAccessKey"`
-	Region          string `json:"region"`
-	SessionToken    string `json:"sessionToken"`
+// LoginRequest is the expected body for POST /api/auth/login.
+type LoginRequest struct {
+	RoleARN    string `json:"roleArn"`
+	ExternalID string `json:"externalId"`
+	Region     string `json:"region"`
 }
 
 // NewAuthHandler creates a new auth handler.
@@ -41,14 +43,19 @@ func NewAuthHandler(authSvc *services.AuthService, jwtSecret string) *AuthHandle
 
 // Login handles POST /api/auth/login
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
-	var user UserKeys
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
+	var req LoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)
 		return
 	}
-	// validate against aws
-	caller, err := h.authSvc.ValidateCredentials(r.Context(), user.AccessKeyId, user.SecretAccessKey, user.Region, user.SessionToken)
+
+	if req.RoleARN == "" || req.Region == "" {
+		http.Error(w, `{"error":"roleArn and region are required"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Assume the user's LogPulseReadRole using LogPulseAppRole (default credential chain)
+	creds, err := h.authSvc.AssumeRole(r.Context(), req.RoleARN, req.ExternalID, req.Region)
 	if err != nil {
 		http.Error(w, `{"error":"authentication error"}`, http.StatusUnauthorized)
 		return
@@ -57,12 +64,14 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	// create claims
 	// TODO: Implement time
 	claims := middleware.Claims{
-		AccessKeyID:  user.AccessKeyId,
-		SecretKey:    user.SecretAccessKey,
-		Region:       user.Region,
-		SessionToken: user.SessionToken,
-		AccountID:    caller.AccountID,
-		ARN:          caller.ARN,
+		RoleARN:          req.RoleARN,
+		ExternalID:       req.ExternalID,
+		Region:           req.Region,
+		AccountID:        creds.AccountID,
+		ARN:              creds.ARN,
+		TempAccessKeyID:  creds.AccessKeyID,
+		TempSecretKey:    creds.SecretKey,
+		TempSessionToken: creds.SessionToken,
 	}
 
 	// sign token
@@ -74,9 +83,8 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// send back to client
-	w.Header().Set("Content-type", "application/json")
-	err = json.NewEncoder(w).Encode(map[string]string{"token": signedToken})
-	if err != nil {
+	w.Header().Set("Content-Type", "application/json")
+	if err = json.NewEncoder(w).Encode(map[string]string{"token": signedToken}); err != nil {
 		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
 		return
 	}

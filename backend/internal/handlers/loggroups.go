@@ -3,14 +3,13 @@
 // Endpoints:
 //   GET /api/log-groups
 //     Headers: Authorization: Bearer <jwt>
-//     Action:  Fetch all CloudWatch log groups visible to the IAM principal
-//              encoded in the JWT.
+//     Action:  Fetch all CloudWatch log groups visible to the assumed LogPulseReadRole.
 //     Returns: [{ "name": "...", "arn": "...", "storedBytes": N, "retentionDays": N }, ...]
 //     Errors:  401 if token missing/invalid, 500 on AWS errors
 //
 // Dependencies:
-//   - middleware.GetClaims(r) to extract credentials from JWT context
-//   - services.LogGroupsService.ListLogGroups(ctx, region, accessKeyID, secretKey)
+//   - middleware.GetClaims(r) to extract temporary credentials from JWT context
+//   - services.LogGroupsService.ListLogGroups(ctx, region, tempAccessKeyID, tempSecretKey, tempSessionToken)
 
 package handlers
 
@@ -42,7 +41,7 @@ func (h *LogGroupsHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get log group from service
-	logGroups, err := h.svc.ListLogGroups(r.Context(), claims.Region, claims.AccessKeyID, claims.SecretKey, claims.SessionToken)
+	logGroups, err := h.svc.ListLogGroups(r.Context(), claims.Region, claims.TempAccessKeyID, claims.TempSecretKey, claims.TempSessionToken)
 	if err != nil {
 		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
 		return
