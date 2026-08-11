@@ -1,16 +1,7 @@
 // internal/middleware/auth.go — JWT verification middleware
 //
-// Attach to any chi route group that requires an authenticated session.
-//
-// Expected request header:
-//   Authorization: Bearer <jwt>
-//
-// On success:
-//   - Decodes the token and stores claims in the request context
-//   - Calls next handler
-//
-// On failure:
-//   - Returns HTTP 401 with a JSON error body
+// Claims now hold the assumed role's temporary credentials
+// (from sts:AssumeRole), NOT static IAM access keys.
 
 package middleware
 
@@ -28,13 +19,16 @@ type contextKey string
 const ClaimsKey contextKey = "claims"
 
 // Claims represents the JWT payload issued at login.
+// Temporary credentials are the result of sts:AssumeRole on the user's LogPulseReadRole.
 type Claims struct {
-	AccessKeyID  string `json:"accessKeyId"`
-	SecretKey    string `json:"secretAccessKey"`
-	Region       string `json:"region"`
-	AccountID    string `json:"accountId,omitempty"`
-	ARN          string `json:"arn,omitempty"`
-	SessionToken string `json:"arn,omitempty"`
+	RoleARN          string `json:"roleArn"`
+	ExternalID       string `json:"externalId,omitempty"`
+	Region           string `json:"region"`
+	AccountID        string `json:"accountId,omitempty"`
+	ARN              string `json:"arn,omitempty"`
+	TempAccessKeyID  string `json:"tempAccessKeyId"`
+	TempSecretKey    string `json:"tempSecretKey"`
+	TempSessionToken string `json:"tempSessionToken"`
 	jwt.RegisteredClaims
 }
 

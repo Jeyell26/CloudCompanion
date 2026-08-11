@@ -1,12 +1,13 @@
-// internal/services/auth.go — Credential validation via STS
+// internal/services/auth.go — Cross-Account Role Assumption via STS
 //
-// Validates IAM credentials by calling STS GetCallerIdentity.
-// If the call succeeds the credentials are legitimate; the returned
-// caller identity (Account, Arn, UserId) is embedded in the JWT.
+// Implements the gold-standard multi-tenant SaaS auth pattern:
+//   LogPulseAppRole (attached to this server) calls sts:AssumeRole
+//   on the user-provided LogPulseReadRole ARN in the customer's account.
+//   Returns short-lived temporary credentials scoped to the customer's role.
 //
-// On LocalStack:
-//   STS GetCallerIdentity always succeeds regardless of credentials.
-//   This is the correct behaviour for local dev.
+// LocalStack mode:
+//   AWS_ENDPOINT is set → skips real AssumeRole, returns mock credentials
+//   and seeds LocalStack with mock log data.
 
 package services
 
@@ -17,14 +18,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
-// CallerIdentity holds the result of a successful STS GetCallerIdentity call.
-type CallerIdentity struct {
-	AccountID string
-	ARN       string
-	UserID    string
+// AssumedRoleCredentials holds the temporary credentials from sts:AssumeRole.
+type AssumedRoleCredentials struct {
+	AccessKeyID  string
+	SecretKey    string
+	SessionToken string
+	AccountID    string
+	ARN          string
 }
 
-// AuthService handles credential validation against AWS STS.
+// AuthService handles role assumption against AWS STS.
 type AuthService struct {
 	aws    *AWSClient
 	mocker *MockerService
@@ -35,22 +38,51 @@ func NewAuthService(aws *AWSClient, mocker *MockerService) *AuthService {
 	return &AuthService{aws: aws, mocker: mocker}
 }
 
-// ValidateCredentials verifies IAM credentials by calling STS GetCallerIdentity.
-func (s *AuthService) ValidateCredentials(ctx context.Context, accessKeyID, secretKey, region, sessionToken string) (*CallerIdentity, error) {
-	client := s.aws.STSClient(region, accessKeyID, secretKey, sessionToken)
-	callerIdentityOutput, err := client.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+// AssumeRole calls sts:AssumeRole using LogPulseAppRole (default credential chain).
+// In LocalStack mode, returns mock credentials and seeds log data directly.
+func (s *AuthService) AssumeRole(ctx context.Context, roleARN, externalID, region string) (*AssumedRoleCredentials, error) {
+	// LocalStack fallback — real AssumeRole not needed in local dev
+	if s.aws.IsLocalStack() {
+		if s.mocker != nil {
+			_ = s.mocker.SeedAtLogin(ctx, region, "localstack", "localstack", "")
+		}
+		return &AssumedRoleCredentials{
+			AccessKeyID:  "localstack",
+			SecretKey:    "localstack",
+			SessionToken: "",
+			AccountID:    "123456789012",
+			ARN:          roleARN,
+		}, nil
+	}
+
+	// Production: use default credential chain (LogPulseAppRole on EC2/App Runner)
+	client := s.aws.DefaultSTSClient(region)
+
+	input := &sts.AssumeRoleInput{
+		RoleArn:         aws.String(roleARN),
+		RoleSessionName: aws.String("LogPulseSession"),
+	}
+	if externalID != "" {
+		input.ExternalId = aws.String(externalID)
+	}
+
+	output, err := client.AssumeRole(ctx, input)
 	if err != nil {
 		return nil, err
 	}
 
-	// Trigger LocalStack mock auto-population if using test/localstack credentials
-	if s.mocker != nil && IsLocalStackCredential(accessKeyID) {
-		_ = s.mocker.SeedAtLogin(ctx, region, accessKeyID, secretKey, sessionToken)
+	// Extract account ID from the assumed role ARN
+	// e.g. arn:aws:sts::123456789012:assumed-role/LogPulseReadRole/LogPulseSession
+	accountID := ""
+	if output.AssumedRoleUser != nil && output.AssumedRoleUser.Arn != nil {
+		accountID = aws.ToString(output.AssumedRoleUser.Arn)
 	}
 
-	return &CallerIdentity{
-		AccountID: aws.ToString(callerIdentityOutput.Account),
-		ARN:       aws.ToString(callerIdentityOutput.Arn),
-		UserID:    aws.ToString(callerIdentityOutput.UserId),
+	return &AssumedRoleCredentials{
+		AccessKeyID:  aws.ToString(output.Credentials.AccessKeyId),
+		SecretKey:    aws.ToString(output.Credentials.SecretAccessKey),
+		SessionToken: aws.ToString(output.Credentials.SessionToken),
+		AccountID:    accountID,
+		ARN:          roleARN,
 	}, nil
 }

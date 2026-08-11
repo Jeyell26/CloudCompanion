@@ -61,7 +61,7 @@ func (m *MockerService) loadMockData() ([]MockLogGroup, error) {
 
 // SeedAtLogin reads mock_data.json, creates log groups/streams, and generates historical events.
 func (m *MockerService) SeedAtLogin(ctx context.Context, region, accessKeyID, secretKey, sessionToken string) error {
-	if !IsLocalStackCredential(accessKeyID) {
+	if !m.aws.IsLocalStack() {
 		return nil
 	}
 

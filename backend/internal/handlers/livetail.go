@@ -19,7 +19,7 @@
 //
 // Dependencies:
 //   - middleware.AuthMiddleware.VerifyQueryToken(tokenStr) for inline JWT check
-//   - services.LiveTailService.StartLiveTail(ctx, groups, region, accessKeyID, secretKey, onEvent)
+//   - services.LiveTailService.StartLiveTail(ctx, groups, region, tempAccessKeyID, tempSecretKey, tempSessionToken, onEvent)
 
 package handlers
 
@@ -118,9 +118,9 @@ func (h *LiveTailHandler) Stream(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		logGroups,
 		claims.Region,
-		claims.AccessKeyID,
-		claims.SecretKey,
-		claims.SessionToken,
+		claims.TempAccessKeyID,
+		claims.TempSecretKey,
+		claims.TempSessionToken,
 		jsonOnEvent,
 	)
 	if err != nil {
