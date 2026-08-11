@@ -1,4 +1,4 @@
-import type { TrackerState, TrackerEntry, LogEvent, NormalizationRule, LogPulseSettings } from '../../types';
+import type { TrackerState, TrackerEntry, LogEvent, NormalizationRule, LogPulseSettings, FilterRule } from '../../types';
 
 const FOCUS_COLORS = [
   '#8b5cf6', // purple

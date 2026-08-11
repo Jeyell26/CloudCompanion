@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Key, Globe, Zap, AlertCircle, ChevronRight } from 'lucide-react';
+import { Key, Globe, Zap, AlertCircle, ChevronRight } from 'lucide-react';
 import { loginWithIAM } from './api/login';
 import type { AuthSession } from '../../types';
 import './Login.css';
@@ -16,23 +16,26 @@ const AWS_REGIONS = [
 ];
 
 export default function Login({ onSuccess }: LoginProps) {
-  const [accessKeyId, setAccessKeyId] = useState('');
-  const [secretKey, setSecretKey] = useState('');
+  const [roleArn, setRoleArn] = useState('');
+  const [externalId, setExternalId] = useState('');
   const [region, setRegion] = useState('us-east-1');
-  const [showSecret, setShowSecret] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessKeyId.trim() || !secretKey.trim()) {
-      setError('Access Key ID and Secret Access Key are required.');
+    if (!roleArn.trim()) {
+      setError('IAM Role ARN is required.');
       return;
     }
     setError(null);
     setIsLoading(true);
     try {
-      const session = await loginWithIAM({ accessKeyId: accessKeyId.trim(), secretAccessKey: secretKey.trim(), region });
+      const session = await loginWithIAM({
+        roleArn: roleArn.trim(),
+        externalId: externalId.trim() || undefined,
+        region,
+      });
       onSuccess(session);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Authentication failed.');
@@ -42,8 +45,8 @@ export default function Login({ onSuccess }: LoginProps) {
   };
 
   const fillLocalstack = () => {
-    setAccessKeyId('localstack');
-    setSecretKey('localstack');
+    setRoleArn('arn:aws:iam::123456789012:role/LogPulseReadRole');
+    setExternalId('logpulse-secure-external-id');
     setRegion('us-east-1');
   };
 
@@ -67,7 +70,7 @@ export default function Login({ onSuccess }: LoginProps) {
         <div className="login-divider" />
 
         <p className="login-desc">
-          Enter your AWS IAM credentials to connect. Credentials are held in memory only and never persisted.
+          Connect your AWS Account securely via Cross-Account IAM Role Assumption (<code>sts:AssumeRole</code>). Zero static keys required.
         </p>
 
         {error && (
@@ -79,15 +82,15 @@ export default function Login({ onSuccess }: LoginProps) {
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="login-field">
-            <label htmlFor="access-key">Access Key ID</label>
+            <label htmlFor="role-arn">IAM Role ARN</label>
             <div className="login-input-wrap">
               <Key size={15} className="login-input-icon" />
               <input
-                id="access-key"
+                id="role-arn"
                 type="text"
-                placeholder="AKIAIOSFODNN7EXAMPLE"
-                value={accessKeyId}
-                onChange={e => setAccessKeyId(e.target.value)}
+                placeholder="arn:aws:iam::123456789012:role/LogPulseReadRole"
+                value={roleArn}
+                onChange={e => setRoleArn(e.target.value)}
                 className="login-input"
                 disabled={isLoading}
                 spellCheck={false}
@@ -97,27 +100,20 @@ export default function Login({ onSuccess }: LoginProps) {
           </div>
 
           <div className="login-field">
-            <label htmlFor="secret-key">Secret Access Key</label>
+            <label htmlFor="external-id">External ID (Optional)</label>
             <div className="login-input-wrap">
               <Key size={15} className="login-input-icon" />
               <input
-                id="secret-key"
-                type={showSecret ? 'text' : 'password'}
-                placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
-                value={secretKey}
-                onChange={e => setSecretKey(e.target.value)}
-                className="login-input has-suffix"
+                id="external-id"
+                type="text"
+                placeholder="logpulse-secure-external-id"
+                value={externalId}
+                onChange={e => setExternalId(e.target.value)}
+                className="login-input"
                 disabled={isLoading}
+                spellCheck={false}
                 autoComplete="off"
               />
-              <button
-                type="button"
-                className="login-toggle-secret"
-                onClick={() => setShowSecret(v => !v)}
-                tabIndex={-1}
-              >
-                {showSecret ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
             </div>
           </div>
 
@@ -149,9 +145,9 @@ export default function Login({ onSuccess }: LoginProps) {
         </form>
 
         <div className="login-localstack">
-          <span>Running LocalStack?</span>
+          <span>Running LocalStack / Mock?</span>
           <button type="button" onClick={fillLocalstack} className="login-localstack-btn">
-            Fill LocalStack credentials
+            Fill Mock Role ARN
           </button>
         </div>
       </div>

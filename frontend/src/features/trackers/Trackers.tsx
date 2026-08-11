@@ -1,4 +1,4 @@
-import { Hash, Sparkles, ScanSearch, EyeOff, Pencil, Check, X, Regex } from 'lucide-react';
+import { Hash, Sparkles, ScanSearch, EyeOff, Pencil, Check, X } from 'lucide-react';
 import type { TrackerState, FilterRule, FilterMode } from '../../types';
 import { useState } from 'react';
 import './Trackers.css';

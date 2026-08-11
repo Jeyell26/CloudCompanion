@@ -16,23 +16,24 @@ import { request, setToken, clearToken } from '../../../api/client';
 import type { AuthSession } from '../../../types';
 
 export interface LoginCredentials {
-  accessKeyId: string;
-  secretAccessKey: string;
+  roleArn: string;
+  externalId?: string;
   region: string;
 }
 
-/** Credentials that are recognised as LocalStack dev credentials. */
-function isLocalStackCredential(accessKeyId: string): boolean {
+/** Credentials that are recognised as LocalStack / mock dev roles. */
+function isMockRoleArn(roleArn: string): boolean {
   return (
-    accessKeyId === 'test' ||
-    accessKeyId === 'localstack' ||
-    accessKeyId.startsWith('AKIA')
+    roleArn === 'test' ||
+    roleArn === 'localstack' ||
+    roleArn.includes('mock') ||
+    roleArn.includes('LogPulseReadRole')
   );
 }
 
 /**
- * Authenticates with the backend using IAM credentials.
- * On network failure with LocalStack credentials, issues a mock token
+ * Authenticates with the backend using cross-account IAM Role assumption (sts:AssumeRole).
+ * On network failure with mock/localstack role, issues a mock token
  * (which activates mock mode for all other API calls).
  */
 export async function loginWithIAM(creds: LoginCredentials): Promise<AuthSession> {
@@ -43,28 +44,36 @@ export async function loginWithIAM(creds: LoginCredentials): Promise<AuthSession
     });
     setToken(res.token);
     localStorage.setItem('logpulse_region', creds.region);
-    localStorage.setItem('logpulse_key_hint', creds.accessKeyId.slice(-4));
+    localStorage.setItem('logpulse_role_arn', creds.roleArn);
+    if (creds.externalId) {
+      localStorage.setItem('logpulse_external_id', creds.externalId);
+    }
     return {
       token: res.token,
       region: creds.region,
-      accessKeyId: creds.accessKeyId.slice(-4),
+      roleArn: creds.roleArn,
+      externalId: creds.externalId,
     };
   } catch {
-    if (isLocalStackCredential(creds.accessKeyId)) {
+    if (isMockRoleArn(creds.roleArn)) {
       const mockTokenPrefix =
         import.meta.env.VITE_MOCK_AUTH_TOKEN_PREFIX ?? 'mock_logpulse_';
       const mockToken = mockTokenPrefix + Math.random().toString(36).substring(2, 14);
       setToken(mockToken);
       localStorage.setItem('logpulse_region', creds.region);
-      localStorage.setItem('logpulse_key_hint', creds.accessKeyId.slice(-4));
+      localStorage.setItem('logpulse_role_arn', creds.roleArn);
+      if (creds.externalId) {
+        localStorage.setItem('logpulse_external_id', creds.externalId);
+      }
       return {
         token: mockToken,
         region: creds.region,
-        accessKeyId: creds.accessKeyId.slice(-4),
+        roleArn: creds.roleArn,
+        externalId: creds.externalId,
       };
     }
     throw new Error(
-      'Invalid credentials. For LocalStack, use Access Key ID starting with "AKIA" or enter "localstack".',
+      'Authentication failed. Please check your Role ARN, External ID, and AWS trust relationship configuration.',
     );
   }
 }
@@ -72,13 +81,16 @@ export async function loginWithIAM(creds: LoginCredentials): Promise<AuthSession
 /** Clears the current session (both real and mock). */
 export function logout(): void {
   clearToken();
+  localStorage.removeItem('logpulse_role_arn');
+  localStorage.removeItem('logpulse_external_id');
 }
 
 /** Rehydrates a stored session from localStorage (survives page refresh). */
 export function getStoredSession(): AuthSession | null {
   const token = localStorage.getItem('logpulse_token');
   const region = localStorage.getItem('logpulse_region');
-  const keyHint = localStorage.getItem('logpulse_key_hint');
-  if (!token || !region) return null;
-  return { token, region, accessKeyId: keyHint || '????' };
+  const roleArn = localStorage.getItem('logpulse_role_arn');
+  const externalId = localStorage.getItem('logpulse_external_id') || undefined;
+  if (!token || !region || !roleArn) return null;
+  return { token, region, roleArn, externalId };
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState, JSX } from 'react';
+import { useEffect, useRef, useCallback, useState, type JSX } from 'react';
 import { Search, X, GripVertical } from 'lucide-react';
 import Trackers from '../trackers/Trackers';
 import ActiveFilters from '../filters/ActiveFilters';

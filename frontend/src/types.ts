@@ -3,7 +3,8 @@
 export interface AuthSession {
   token: string;
   region: string;
-  accessKeyId: string; // last 4 chars only, for display
+  roleArn: string;
+  externalId?: string;
 }
 
 export interface LogGroup {

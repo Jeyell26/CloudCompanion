@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, X, ScanSearch, EyeOff, Check, Pencil, Regex } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, ScanSearch, EyeOff, Check, Pencil } from 'lucide-react';
 import type { FilterRule, FilterMode } from '../../types';
 import { useState } from 'react';
 import './ActiveFilters.css';
