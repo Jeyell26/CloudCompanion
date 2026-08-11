@@ -1,0 +1,14 @@
+{
+  "logs": [
+    { "level": "INFO",  "message": "GET /api/v1/health — 200 OK — 4ms" },
+    { "level": "INFO",  "message": "POST /api/v1/auth/login — user=dev@cloudcompanion.io status=200" },
+    { "level": "WARN",  "message": "Memory usage high — used=1.2GB limit=2GB threshold=80%" },
+    { "level": "ERROR", "message": "Redis connection timeout — host=cache.prod:6379 retrying (1/3)" },
+    { "level": "ERROR", "message": "Redis connection timeout — host=cache.prod:6379 retrying (2/3)" },
+    { "level": "ERROR", "message": "Redis connection timeout — host=cache.prod:6379 retrying (3/3)" },
+    { "level": "INFO",  "message": "GET /api/v1/users — 200 OK — 12ms" },
+    { "level": "DEBUG", "message": "DB query executed — table=sessions rows=42 duration=3ms" },
+    { "level": "WARN",  "message": "Slow query detected — duration=1842ms query=SELECT * FROM logs" },
+    { "level": "INFO",  "message": "Cache hit — key=session:abc123 ttl=3200s" }
+  ]
+}
