@@ -3,7 +3,8 @@
 export interface AuthSession {
   token: string;
   region: string;
-  accessKeyId: string; // last 4 chars only, for display
+  roleArn: string;
+  externalId?: string;
 }
 
 export interface LogGroup {
@@ -47,7 +48,7 @@ export interface TrackerState {
 }
 
 // Filters
-export type FilterMode = 'focus' | 'ignore';
+export type FilterMode = 'focus' | 'ignore' | 'group';
 
 export interface FilterRule {
   id: string;

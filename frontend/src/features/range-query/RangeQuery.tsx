@@ -47,16 +47,16 @@ export default function RangeQuery({ selectedGroups, settings, onBack }: RangeQu
   // Keep logsRef in sync
   logsRef.current = logs;
 
-  // Recompute tracker from entire buffer when normalization rules change
+  // Recompute tracker from entire buffer when normalization rules or filter rules change
   useEffect(() => {
     if (logsRef.current.length === 0) return;
     let ts = createTrackerState();
     for (const log of logsRef.current) {
-      ts = processLog(ts, log, settings);
+      ts = processLog(ts, log, settings, filterRules);
     }
     setTrackerState(ts);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.normalizationRules]);
+  }, [settings.normalizationRules, filterRules]);
 
   const validateRange = (): string | null => {
     const start = new Date(`${range.startDate}T${range.startTime}`);
@@ -88,7 +88,7 @@ export default function RangeQuery({ selectedGroups, settings, onBack }: RangeQu
       let ts = createTrackerState();
       for (const log of events) {
         addLog(log);
-        ts = processLog(ts, log, settings);
+        ts = processLog(ts, log, settings, []);
       }
       setTrackerState(ts);
       setHasResults(true);
@@ -100,8 +100,8 @@ export default function RangeQuery({ selectedGroups, settings, onBack }: RangeQu
     }
   };
 
-  const handleSetFilter = useCallback((pattern: string, mode: FilterMode) => {
-    setFilterRules(prev => addOrUpdateFilter(prev, pattern, mode));
+  const handleSetFilter = useCallback((pattern: string, mode: FilterMode, isRegex?: boolean) => {
+    setFilterRules(prev => addOrUpdateFilter(prev, pattern, mode, undefined, isRegex));
   }, []);
 
   const handleClearFilter = useCallback((pattern: string) => {
@@ -165,6 +165,7 @@ export default function RangeQuery({ selectedGroups, settings, onBack }: RangeQu
           logs={logs}
           trackerState={trackerState}
           filterRules={filterRules}
+          normalizationRules={settings.normalizationRules}
           autoScroll={false}
           onScrollUp={() => {}}
           onSetFilter={handleSetFilter}

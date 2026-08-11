@@ -39,6 +39,12 @@
 }
 .af-rule.focus .af-rule-icon { color: var(--rule-color, var(--accent-purple)); }
 .af-rule.ignore .af-rule-icon { color: var(--text-muted); }
+.af-rule.group .af-rule-icon { color: var(--accent-green, #10b981); }
+
+.af-rule.group {
+  background: rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.15);
+}
 
 .af-regex-badge {
   background: rgba(139,92,246,0.15);

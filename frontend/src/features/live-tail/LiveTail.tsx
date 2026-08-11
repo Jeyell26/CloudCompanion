@@ -22,6 +22,8 @@ export default function LiveTail({ selectedGroups, settings, onStop }: LiveTailP
   const streamRef = useRef<(() => void) | null>(null);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  const filterRulesRef = useRef(filterRules);
+  filterRulesRef.current = filterRules;
   // Keep a stable ref to logs so the recompute effect doesn't re-run on every new log
   const logsRef = useRef<LogEvent[]>([]);
 
@@ -35,19 +37,19 @@ export default function LiveTail({ selectedGroups, settings, onStop }: LiveTailP
 
   const handleNewLog = useCallback((log: LogEvent) => {
     addLog(log);
-    setTrackerState(prev => processLog(prev, log, settingsRef.current));
+    setTrackerState(prev => processLog(prev, log, settingsRef.current, filterRulesRef.current));
   }, [addLog]);
 
-  // Recompute tracker from entire buffer when normalization rules change
+  // Recompute tracker from entire buffer when normalization rules or filter rules change
   useEffect(() => {
     if (logsRef.current.length === 0) return;
     let ts = createTrackerState();
     for (const log of logsRef.current) {
-      ts = processLog(ts, log, settingsRef.current);
+      ts = processLog(ts, log, settingsRef.current, filterRules);
     }
     setTrackerState(ts);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.normalizationRules]);
+  }, [settings.normalizationRules, filterRules]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -62,8 +64,8 @@ export default function LiveTail({ selectedGroups, settings, onStop }: LiveTailP
     onStop();
   };
 
-  const handleSetFilter = useCallback((pattern: string, mode: FilterMode) => {
-    setFilterRules(prev => addOrUpdateFilter(prev, pattern, mode));
+  const handleSetFilter = useCallback((pattern: string, mode: FilterMode, isRegex?: boolean) => {
+    setFilterRules(prev => addOrUpdateFilter(prev, pattern, mode, undefined, isRegex));
   }, []);
 
   const handleClearFilter = useCallback((pattern: string) => {
@@ -109,6 +111,7 @@ export default function LiveTail({ selectedGroups, settings, onStop }: LiveTailP
         logs={logs}
         trackerState={trackerState}
         filterRules={filterRules}
+        normalizationRules={settings.normalizationRules}
         autoScroll={autoScroll}
         onScrollUp={() => setAutoScroll(false)}
         onSetFilter={handleSetFilter}
