@@ -46,7 +46,7 @@ func (s *LiveTailService) StartLiveTail(ctx context.Context, logGroups []string,
 	client := s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken)
 
 	// LocalStack Community fallback: poll FilterLogEvents since LocalStack Community does not support StartLiveTail gRPC
-	if s.aws.IsLocalStack() {
+	if IsLocalStackCredential(accessKeyID) {
 		lastSeenMap := make(map[string]int64)
 		initialStart := time.Now().Add(-30 * time.Second).UnixMilli()
 		for _, group := range logGroups {

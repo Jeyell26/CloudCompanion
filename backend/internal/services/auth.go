@@ -13,6 +13,7 @@ package services
 
 import (
 	"context"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
@@ -38,11 +39,23 @@ func NewAuthService(aws *AWSClient, mocker *MockerService) *AuthService {
 	return &AuthService{aws: aws, mocker: mocker}
 }
 
+// isLocalStackRoleARN returns true if the Role ARN belongs to a LocalStack fake account.
+// LocalStack account IDs: 000000000000 and 123456789012.
+// ARN format: arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
+func isLocalStackRoleARN(roleARN string) bool {
+	parts := strings.Split(roleARN, ":")
+	if len(parts) < 5 {
+		return false
+	}
+	accountID := parts[4]
+	return accountID == "000000000000" || accountID == "123456789012"
+}
+
 // AssumeRole calls sts:AssumeRole using LogPulseAppRole (default credential chain).
 // In LocalStack mode, returns mock credentials and seeds log data directly.
 func (s *AuthService) AssumeRole(ctx context.Context, roleARN, externalID, region string) (*AssumedRoleCredentials, error) {
-	// LocalStack fallback — real AssumeRole not needed in local dev
-	if s.aws.IsLocalStack() {
+	// LocalStack fallback — detected from the Role ARN account ID (000000000000 or 123456789012)
+	if isLocalStackRoleARN(roleARN) {
 		if s.mocker != nil {
 			_ = s.mocker.SeedAtLogin(ctx, region, "localstack", "localstack", "")
 		}
