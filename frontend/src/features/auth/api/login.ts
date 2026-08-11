@@ -2,9 +2,7 @@
  * auth/api/login.ts
  *
  * Handles IAM credential authentication against the LogPulse backend.
- * Falls back to a LocalStack mock session when:
- *  - the backend is unreachable, AND
- *  - the credentials are recognisable LocalStack test credentials.
+ * If the backend is unreachable or authentication fails, an error is thrown.
  *
  * Mock toggle: automatically enabled when the resulting token starts with
  * the prefix defined in VITE_MOCK_AUTH_TOKEN_PREFIX (.env.test).
@@ -21,64 +19,30 @@ export interface LoginCredentials {
   region: string;
 }
 
-/** Credentials that are recognised as LocalStack / mock dev roles. */
-function isMockRoleArn(roleArn: string): boolean {
-  return (
-    roleArn === 'test' ||
-    roleArn === 'localstack' ||
-    roleArn.includes('mock') ||
-    roleArn.includes('LogPulseReadRole')
-  );
-}
-
 /**
  * Authenticates with the backend using cross-account IAM Role assumption (sts:AssumeRole).
- * On network failure with mock/localstack role, issues a mock token
- * (which activates mock mode for all other API calls).
+ * Throws on network failure or invalid credentials — no silent fallback.
  */
 export async function loginWithIAM(creds: LoginCredentials): Promise<AuthSession> {
-  try {
-    const res = await request<{ token: string }>('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify(creds),
-    });
-    setToken(res.token);
-    localStorage.setItem('logpulse_region', creds.region);
-    localStorage.setItem('logpulse_role_arn', creds.roleArn);
-    if (creds.externalId) {
-      localStorage.setItem('logpulse_external_id', creds.externalId);
-    }
-    return {
-      token: res.token,
-      region: creds.region,
-      roleArn: creds.roleArn,
-      externalId: creds.externalId,
-    };
-  } catch {
-    if (isMockRoleArn(creds.roleArn)) {
-      const mockTokenPrefix =
-        import.meta.env.VITE_MOCK_AUTH_TOKEN_PREFIX ?? 'mock_logpulse_';
-      const mockToken = mockTokenPrefix + Math.random().toString(36).substring(2, 14);
-      setToken(mockToken);
-      localStorage.setItem('logpulse_region', creds.region);
-      localStorage.setItem('logpulse_role_arn', creds.roleArn);
-      if (creds.externalId) {
-        localStorage.setItem('logpulse_external_id', creds.externalId);
-      }
-      return {
-        token: mockToken,
-        region: creds.region,
-        roleArn: creds.roleArn,
-        externalId: creds.externalId,
-      };
-    }
-    throw new Error(
-      'Authentication failed. Please check your Role ARN, External ID, and AWS trust relationship configuration.',
-    );
+  const res = await request<{ token: string }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(creds),
+  });
+  setToken(res.token);
+  localStorage.setItem('logpulse_region', creds.region);
+  localStorage.setItem('logpulse_role_arn', creds.roleArn);
+  if (creds.externalId) {
+    localStorage.setItem('logpulse_external_id', creds.externalId);
   }
+  return {
+    token: res.token,
+    region: creds.region,
+    roleArn: creds.roleArn,
+    externalId: creds.externalId,
+  };
 }
 
-/** Clears the current session (both real and mock). */
+/** Clears the current session. */
 export function logout(): void {
   clearToken();
   localStorage.removeItem('logpulse_role_arn');
