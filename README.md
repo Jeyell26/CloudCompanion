@@ -1,23 +1,48 @@
 # CloudCompanion — LogPulse
 
-A full-stack AWS CloudWatch log management SaaS built to showcase cross-account IAM role assumption, real-time log streaming, and modern cloud architecture patterns.
+A full-stack AWS CloudWatch log management SaaS built to showcase cross-account IAM role assumption, real-time log streaming, and modern cloud deployment pipelines.
+
+[![Demo Video](https://img.shields.io/badge/Video-Watch_Live_AWS_Demo-blue?style=for-the-badge&logo=youtube)](#-demo--showcase)
+[![GitHub Pages App](https://img.shields.io/badge/Live_App-Try_Interactive_Demo-success?style=for-the-badge&logo=github)](https://jeyell26.github.io/CloudCompanion/)
+[![EC2 AWS App](https://img.shields.io/badge/Production_App-Live_on_AWS_EC2-orange?style=for-the-badge&logo=amazonaws)](http://3.89.224.215)
 
 ---
 
-## What is LogPulse?
+## 🎬 Demo & Showcase
 
-LogPulse lets you monitor and search AWS CloudWatch logs from a clean web interface. It uses the same authentication pattern as Datadog and Grafana Cloud — you grant LogPulse read access to your AWS account via an IAM role, and it never touches your credentials directly.
+LogPulse is available across **three access points**:
+
+| Showcase Type | Description | Link |
+|---|---|---|
+| **Video Demo Walkthrough** | *TODO*
+| **Interactive Demo (GitHub Pages)** | Zero-cost, zero-install hosted web app running in Mock Mode for instant browser testing | [Try Hosted Demo](https://jeyell26.github.io/CloudCompanion/) |
+| **Live Production App (AWS EC2)** | Self-hosted production deployment connected to real AWS CloudWatch infrastructure | [Open EC2 App](http://3.89.224.215) |
 
 ---
 
-## Getting Started (User Onboarding)
+## How to Use & Explore LogPulse
 
-Before you can log into LogPulse, you need to create an IAM Role in your AWS account that grants LogPulse read access to your CloudWatch logs.
+---
 
-### Step 1 — Create `LogPulseReadRole` in your AWS account
+### Option 1: Try the Live Interactive Web App (GitHub Pages - No AWS Account Needed)
+*Best for recruiters, interviewers, and reviewers who want to test the UI immediately.*
 
-1. Go to **IAM → Roles → Create role**
-2. Select **Custom trust policy** and paste the following:
+Visit [https://jeyell26.github.io/CloudCompanion/](https://jeyell26.github.io/CloudCompanion/).
+
+1. Click the **"Fill Mock Role ARN"** button on the login screen.
+2. Click **Login**.
+3. Select any log group to experience real-time streaming, date/time filtering, log normalization, and pattern tracking with mock datasets.
+
+---
+
+### Option 2: Connect Your Own AWS Account to LogPulse (AWS EC2)
+*Best for users who want to monitor real AWS CloudWatch logs using Cross-Account IAM Role Assumption.*
+
+Visit [http://3.89.224.215](http://3.89.224.215) (or your self-hosted instance).
+
+#### Step 1 — Create `LogPulseReadRole` in your AWS Account
+1. Open **AWS Console → IAM → Roles → Create role**.
+2. Select **Custom trust policy** and paste:
 
 ```json
 {
@@ -26,7 +51,7 @@ Before you can log into LogPulse, you need to create an IAM Role in your AWS acc
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::LOGPULSE_ACCOUNT_ID:role/LogPulseAppRole"
+        "AWS": "arn:aws:iam::<LOGPULSE_AWS_ACCOUNT_ID>:role/LogPulseAppRole"
       },
       "Action": "sts:AssumeRole",
       "Condition": {
@@ -39,50 +64,70 @@ Before you can log into LogPulse, you need to create an IAM Role in your AWS acc
 }
 ```
 
-> Replace `LOGPULSE_ACCOUNT_ID` with the LogPulse AWS account ID (provided by the LogPulse admin).
+3. Attach managed policy: **`CloudWatchLogsReadOnlyAccess`**.
+4. Name the role: **`LogPulseReadRole`**.
+5. Copy the generated Role ARN (`arn:aws:iam::YOUR_ACCOUNT_ID:role/LogPulseReadRole`).
 
-3. Click **Next** → search and attach **`CloudWatchLogsReadOnlyAccess`**
-4. Name the role: **`LogPulseReadRole`**
-5. Create the role and copy its ARN — it looks like:
-   ```
-   arn:aws:iam::YOUR_ACCOUNT_ID:role/LogPulseReadRole
-   ```
+#### Step 2 — Log In
+1. Open [http://3.89.224.215](http://3.89.224.215).
+2. Enter your **Role ARN** & **External ID:** `logpulse-secure-external-id`.
+3. Select your AWS Region and click **Login**.
 
-### Step 2 — Log into LogPulse
+---
 
-1. Open LogPulse in your browser
-2. Enter your **Role ARN** from Step 1
-3. Enter the **External ID:** `logpulse-secure-external-id`
-4. Select your **AWS region**
-5. Click **Login**
+### Option 3: Self-Host LogPulse (On Your Own AWS or LocalStack)
+*Best for developers or organizations deploying their own instance.*
 
-LogPulse will assume your role and gain temporary (1-hour) read-only access to your CloudWatch logs. You can revoke access at any time by deleting `LogPulseReadRole` from your AWS account.
+#### A. Run Locally with LocalStack (Zero AWS Cost)
+```bash
+# 1. Clone repository
+git clone https://github.com/Jeyell26/CloudCompanion.git
+cd CloudCompanion
+
+# 2. Start LocalStack mock environment
+docker-compose up -d
+
+# 3. Start Backend & Frontend
+cd backend && go run cmd/server/main.go &
+cd frontend && npm run dev
+```
+
+#### B. Deploy to AWS EC2 (CloudFormation + Makefile)
+```bash
+cd pipeline
+# Edit log-pulse.yaml / Makefile parameters if needed, then run:
+make all
+```
 
 ---
 
 ## How Authentication Works
 
-LogPulse uses AWS Cross-Account Role Assumption (`sts:AssumeRole`):
+LogPulse implements gold-standard AWS Cross-Account IAM Role Assumption (`sts:AssumeRole`):
 
 ```
 LogPulse Server (LogPulseAppRole)
-  → calls sts:AssumeRole on your LogPulseReadRole
-  → receives temporary credentials (1-hour expiry)
-  → uses those credentials to read your CloudWatch logs
-  → credentials are never stored — expire automatically
+  ├── 1. User submits Role ARN + External ID
+  ├── 2. Calls sts:AssumeRole(UserRoleARN)
+  ├── 3. Receives temporary 1-hour session credentials
+  └── 4. Queries CloudWatch Logs on behalf of user
 ```
 
-No static access keys are stored anywhere. You are in full control of access.
+- **Zero Static Keys:** No `AKIA...` access keys are stored or transmitted.
+- **Short-Lived Sessions:** Tokens automatically expire after 1 hour.
+- **Instant Revocation:** Delete `LogPulseReadRole` in your AWS account at any time to instantly revoke LogPulse access.
 
 ---
+
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | React 19, TypeScript, Vite |
-| Backend | Go 1.24, chi router, AWS SDK v2 |
-| Auth | JWT + AWS STS Cross-Account Role Assumption |
-| Log Streaming | CloudWatch Logs StartLiveTail (SSE) |
-| Demo Generator | Python 3.12, AWS SAM, Lambda |
-| Local Dev | Docker Compose + LocalStack |
+| Frontend | React 19, TypeScript, Vite, Vanilla CSS |
+| Backend | Go 1.24, chi router, golang-jwt/v5, AWS SDK v2 |
+| Auth & Security | AWS STS Cross-Account Role Assumption (`sts:AssumeRole`) |
+| Real-Time Streaming | CloudWatch Logs `StartLiveTail` (Server-Sent Events) |
+| Demo Log Generator | Python 3.12, AWS SAM (Lambda + API Gateway + S3) |
+| Infrastructure | CloudFormation (`log-pulse.yaml`) + Makefile + Nginx |
+| Hosting & CI/CD | GitHub Actions + GitHub Pages / AWS EC2 |
