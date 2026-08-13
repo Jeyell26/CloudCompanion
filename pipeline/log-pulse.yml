@@ -1,0 +1,20 @@
+# LogPulse Deployment Configuration
+# Update the values below before running 'make all'
+
+ec2:
+  region: us-east-1
+  instance_type: t3.micro
+  key_pair: logpulse-key             # Name of your AWS Key Pair (must exist in AWS Console)
+  key_file: ~/.ssh/logpulse-key.pem  # Local path to your .pem file
+  iam_instance_profile: LogPulseAppRole
+  security_group: logpulse-sg        # Created automatically if it does not exist
+  server_tag: LogPulse-Server        # EC2 instance Name tag
+
+app:
+  backend_port: 5000
+  frontend_dir: ../frontend          # Relative to pipeline/
+  backend_dir: ../backend            # Relative to pipeline/
+  binary_name: logpulse-backend
+  jwt_secret: change-this-to-a-secure-random-secret  # Run: openssl rand -hex 64
+  jwt_expires_hours: 8
+  cors_origin: "*"
