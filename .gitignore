@@ -1,12 +1,7 @@
 /node_modules
-/backend/.env
-/backend/main
-/backend/server
 /frontend/wget-log
 /frontend/wget-log.1
-/localstack_data/cache/server.test.pem
-/localstack_data/cache/server.test.pem.crt
-/localstack_data/cache/server.test.pem.key
-/localstack_data/cache/service-catalog-3_4_0-1_34_84.pickle
-/localstack_data/cache/machine.json
-/backend/'
+/localstack_data/cache
+/backend/.env
+/backend/server
+/backend/main
