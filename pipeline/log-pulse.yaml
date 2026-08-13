@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: LogPulse EC2 deployment stack — 1 instance running Nginx (frontend) + Go backend (systemd)
+
+# ---------------------------------------------------------------------------
+# Parameters — overridden by Makefile via --parameter-overrides
+# ---------------------------------------------------------------------------
+Parameters:
+  KeyPairName:
+    Type: String
+    Description: Name of the existing EC2 Key Pair for SSH access
+
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues: [t2.micro, t3.micro, t3.small]
+    Description: EC2 instance type (t3.micro is Free Tier eligible)
+
+  IAMInstanceProfile:
+    Type: String
+    Default: LogPulseAppRole
+    Description: IAM Instance Profile to attach (grants sts:AssumeRole without static keys)
+
+  BackendPort:
+    Type: Number
+    Default: 5000
+    Description: Port the Go backend listens on locally
+
+# ---------------------------------------------------------------------------
+# Resources
+# ---------------------------------------------------------------------------
+Resources:
+
+  # Security Group — allows HTTP, HTTPS, SSH
+  LogPulseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: logpulse-sg
+      GroupDescription: LogPulse EC2 Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: SSH access
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP (Nginx frontend)
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS
+
+  # EC2 Instance — runs Nginx (frontend) + Go backend (systemd)
+  LogPulseInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      IamInstanceProfile: !Ref IAMInstanceProfile
+      SecurityGroupIds:
+        - !GetAtt LogPulseSecurityGroup.GroupId
+      ImageId: !Sub "{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}"
+      Tags:
+        - Key: Name
+          Value: LogPulse-Server
+        - Key: Project
+          Value: LogPulse
+
+# ---------------------------------------------------------------------------
+# Outputs — consumed by Makefile targets (deploy, ssh, ip)
+# ---------------------------------------------------------------------------
+Outputs:
+  PublicIP:
+    Description: Public IP address of the LogPulse EC2 instance
+    Value: !GetAtt LogPulseInstance.PublicIp
+    Export:
+      Name: LogPulsePublicIP
+
+  InstanceID:
+    Description: EC2 Instance ID
+    Value: !Ref LogPulseInstance
+    Export:
+      Name: LogPulseInstanceID
