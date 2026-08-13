@@ -22,6 +22,9 @@ Resources:
   TinyApi:
     Type: AWS::Serverless::HttpApi
     Properties:
+      Auth:
+        EnableIamAuthorizer: true
+        DefaultAuthorizer: AWS_IAM
       CorsConfiguration:
         AllowHeaders:
         - '*'
@@ -39,7 +42,7 @@ Resources:
           BUCKET_NAME:
             Ref: TinyStorageBucket
           LOGGER_FUNCTION_NAME:
-            Ref: TinyLoggerFunction
+            Fn::Sub: ${AWS::StackName}-logger
           DEFAULT_LOG_GROUP: /aws/logpulse/demo
           DEFAULT_DURATION_SECONDS: '300'
           MIN_DURATION_SECONDS: '5'
@@ -48,10 +51,12 @@ Resources:
       - S3CrudPolicy:
           BucketName:
             Ref: TinyStorageBucket
-      - LambdaInvokePolicy:
-          FunctionName:
-            Ref: TinyLoggerFunction
       - Statement:
+        - Effect: Allow
+          Action:
+          - lambda:InvokeFunction
+          Resource:
+            Fn::Sub: arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-logger
         - Effect: Allow
           Action:
           - logs:CreateLogGroup
@@ -85,6 +90,8 @@ Resources:
   TinyLoggerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName:
+        Fn::Sub: ${AWS::StackName}-logger
       CodeUri: TinyLoggerFunction
       Handler: logger.handler
       Timeout: 900
@@ -92,8 +99,6 @@ Resources:
         Variables:
           BUCKET_NAME:
             Ref: TinyStorageBucket
-          LOGGER_FUNCTION_NAME:
-            Ref: TinyLoggerFunction
           DEFAULT_LOG_GROUP: /aws/logpulse/demo
           DEFAULT_DURATION_SECONDS: '300'
           MIN_DURATION_SECONDS: '5'

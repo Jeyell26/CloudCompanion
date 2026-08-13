@@ -9,7 +9,7 @@ Globals:
     Runtime: python3.12
 
 Resources:
-  # 1. S3 Bucket for session state and config.json
+  # 1. S3 Storage Bucket
   TinyStorageBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -19,11 +19,12 @@ Resources:
             AllowedMethods: [PUT, GET]
             AllowedOrigins: ['*']
 
-  # 2. HTTP API Gateway with IAM Authorization
+  # 2. HTTP API Gateway with Built-in IAM Authorization
   TinyApi:
     Type: AWS::Serverless::HttpApi
     Properties:
       Auth:
+        EnableIamAuthorizer: true
         DefaultAuthorizer: AWS_IAM
       CorsConfiguration:
         AllowHeaders: ['*']
@@ -39,7 +40,7 @@ Resources:
       Environment:
         Variables:
           BUCKET_NAME: !Ref TinyStorageBucket
-          LOGGER_FUNCTION_NAME: !Ref TinyLoggerFunction
+          LOGGER_FUNCTION_NAME: !Sub "${AWS::StackName}-logger"
           DEFAULT_LOG_GROUP: /aws/logpulse/demo
           DEFAULT_DURATION_SECONDS: '300'
           MIN_DURATION_SECONDS: '5'
@@ -47,9 +48,11 @@ Resources:
       Policies:
         - S3CrudPolicy:
             BucketName: !Ref TinyStorageBucket
-        - LambdaInvokePolicy:
-            FunctionName: !Ref TinyLoggerFunction
         - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-logger"
             - Effect: Allow
               Action:
                 - logs:CreateLogGroup
@@ -76,17 +79,17 @@ Resources:
             Method: POST
             ApiId: !Ref TinyApi
 
-  # 4. Background Logger Lambda Function
+  # 4. Background Logger Lambda Worker Function
   TinyLoggerFunction:
     Type: AWS::Serverless::Function
     Properties:
+      FunctionName: !Sub "${AWS::StackName}-logger"
       CodeUri: .
       Handler: logger.handler
-      Timeout: 900 # 15 minutes max execution time (900 seconds)
+      Timeout: 900 # 15 minutes max execution time
       Environment:
         Variables:
           BUCKET_NAME: !Ref TinyStorageBucket
-          LOGGER_FUNCTION_NAME: !Ref TinyLoggerFunction
           DEFAULT_LOG_GROUP: /aws/logpulse/demo
           DEFAULT_DURATION_SECONDS: '300'
           MIN_DURATION_SECONDS: '5'

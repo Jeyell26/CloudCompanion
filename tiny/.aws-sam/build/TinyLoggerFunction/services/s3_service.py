@@ -6,7 +6,7 @@ def generate_upload_url(bucket: str, key: str = 'config.json', expires_in: int =
     s3 = boto3.client('s3')
     return s3.generate_presigned_url(
         'put_object',
-        Params={'Bucket': bucket, 'Key': key},
+        Params={'Bucket': bucket, 'Key': key, 'ContentType': 'application/json'},
         ExpiresIn=expires_in
     )
 
