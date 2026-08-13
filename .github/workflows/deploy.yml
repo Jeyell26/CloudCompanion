@@ -45,6 +45,7 @@ jobs:
           VITE_BASE_PATH: '/CloudCompanion/'
         run: |
           cd frontend
+          cp .env.test .env
           npm run build
 
       - name: Setup GitHub Pages
