@@ -4,6 +4,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -18,8 +19,9 @@ type RangeQueryHandler struct {
 
 // RangeQueryRequest handles json decoding
 type RangeQueryRequest struct {
-	Groups []string `json:"groups"`
-	Range  Ranges   `json:"range"`
+	Groups    []string `json:"groups"`
+	Range     Ranges   `json:"range"`
+	NextToken string   `json:"nextToken,omitempty"`
 }
 
 type Ranges struct {
@@ -27,6 +29,14 @@ type Ranges struct {
 	StartTime string `json:"startTime"`
 	EndDate   string `json:"endDate"`
 	EndTime   string `json:"endTime"`
+}
+
+func parseDateTime(dateStr, timeStr string) (time.Time, error) {
+	combined := dateStr + "T" + timeStr
+	if t, err := time.Parse("2006-01-02T15:04:05", combined); err == nil {
+		return t, nil
+	}
+	return time.Parse("2006-01-02T15:04", combined)
 }
 
 // NewRangeQueryHandler creates a new range query handler.
@@ -45,22 +55,22 @@ func (h *RangeQueryHandler) Query(w http.ResponseWriter, r *http.Request) {
 	var req RangeQueryRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		log.Println("[RangeQuery] Error decoding body:", err)
 		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)
 		return
 	}
 
 	// Epoch conversion
-	startCombined := req.Range.StartDate + "T" + req.Range.StartTime
-	endCombined := req.Range.EndDate + "T" + req.Range.EndTime
-
-	startMs, err := time.Parse("2006-01-02T15:04:05", startCombined)
+	startMs, err := parseDateTime(req.Range.StartDate, req.Range.StartTime)
 	if err != nil {
+		log.Println("[RangeQuery] Error parsing startDate/startTime:", err, "Combined:", req.Range.StartDate+"T"+req.Range.StartTime)
 		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)
 		return
 	}
 
-	endMs, err := time.Parse("2006-01-02T15:04:05", endCombined)
+	endMs, err := parseDateTime(req.Range.EndDate, req.Range.EndTime)
 	if err != nil {
+		log.Println("[RangeQuery] Error parsing endDate/endTime:", err, "Combined:", req.Range.EndDate+"T"+req.Range.EndTime)
 		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)
 		return
 	}
@@ -70,12 +80,14 @@ func (h *RangeQueryHandler) Query(w http.ResponseWriter, r *http.Request) {
 		req.Groups,
 		startMs.UnixMilli(),
 		endMs.UnixMilli(),
+		req.NextToken,
 		claims.Region,
 		claims.TempAccessKeyID,
 		claims.TempSecretKey,
 		claims.TempSessionToken,
 	)
 	if err != nil {
+		log.Println("[RangeQuery] Error in QueryRange:", err)
 		http.Error(w, `{"error":"bad request"}`, http.StatusBadRequest)
 		return
 	}

@@ -43,12 +43,17 @@ func NewAuthService(aws *AWSClient, mocker *MockerService) *AuthService {
 // LocalStack account IDs: 000000000000 and 123456789012.
 // ARN format: arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
 func isLocalStackRoleARN(roleARN string) bool {
-	parts := strings.Split(roleARN, ":")
-	if len(parts) < 5 {
-		return false
-	}
-	accountID := parts[4]
+	accountID := extractAccountID(roleARN)
 	return accountID == "000000000000" || accountID == "123456789012"
+}
+
+// extractAccountID parses the 12-digit AWS Account ID from an ARN string.
+func extractAccountID(arnStr string) string {
+	parts := strings.Split(arnStr, ":")
+	if len(parts) >= 5 {
+		return parts[4]
+	}
+	return ""
 }
 
 // AssumeRole calls sts:AssumeRole using LogPulseAppRole (default credential chain).
@@ -84,11 +89,10 @@ func (s *AuthService) AssumeRole(ctx context.Context, roleARN, externalID, regio
 		return nil, err
 	}
 
-	// Extract account ID from the assumed role ARN
-	// e.g. arn:aws:sts::123456789012:assumed-role/LogPulseReadRole/LogPulseSession
-	accountID := ""
-	if output.AssumedRoleUser != nil && output.AssumedRoleUser.Arn != nil {
-		accountID = aws.ToString(output.AssumedRoleUser.Arn)
+	// Extract 12-digit account ID from roleARN (e.g. arn:aws:iam::123456789012:role/LogPulseReadRole)
+	accountID := extractAccountID(roleARN)
+	if accountID == "" && output.AssumedRoleUser != nil && output.AssumedRoleUser.Arn != nil {
+		accountID = extractAccountID(aws.ToString(output.AssumedRoleUser.Arn))
 	}
 
 	return &AssumedRoleCredentials{

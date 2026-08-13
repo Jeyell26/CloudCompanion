@@ -118,12 +118,14 @@ func (h *LiveTailHandler) Stream(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		logGroups,
 		claims.Region,
+		claims.AccountID,
 		claims.TempAccessKeyID,
 		claims.TempSecretKey,
 		claims.TempSessionToken,
 		jsonOnEvent,
 	)
 	if err != nil {
+		log.Println("[LiveTail] Error in StartLiveTail:", err)
 		http.Error(w, `{"error":"internal server error"}`, http.StatusInternalServerError)
 		return
 	}
