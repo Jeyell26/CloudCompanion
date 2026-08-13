@@ -30,4 +30,11 @@ else
   sam deploy --guided
 fi
 
+API_URL=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --region "$REGION" --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" --output text 2>/dev/null || echo "None")
+
+if [ -n "$API_URL" ] && [ "$API_URL" != "None" ]; then
+  echo "$API_URL" > .api_url
+  echo "Saved API URL to .api_url: $API_URL"
+fi
+
 echo "=== Deployment Completed Successfully ==="
