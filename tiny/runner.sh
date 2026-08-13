@@ -1,20 +1,34 @@
 #!/bin/bash
 # Helper runner script to invoke tiny API Gateway endpoints using AWS SigV4 IAM authentication
 
-API_URL="${2}"
 ACTION="${1}"
+API_URL=""
+
+# If 2nd parameter starts with http, use it as API_URL
+if [[ "${2:-}" =~ ^https?:// ]]; then
+  API_URL="${2}"
+elif [ -f ".api_url" ]; then
+  API_URL=$(cat .api_url | tr -d ' \n\r')
+fi
+
+# Fallback: query CloudFormation directly if .api_url file is missing
+if [ -z "$API_URL" ]; then
+  API_URL=$(aws cloudformation describe-stacks --stack-name "logpulse-app" --region "us-east-1" --query "Stacks[0].Outputs[?OutputKey=='ApiEndpoint'].OutputValue" --output text 2>/dev/null || echo "")
+fi
 
 if [ -z "$ACTION" ] || [ -z "$API_URL" ]; then
-  echo "Usage: ./runner.sh <action> <api_url> [options]"
+  echo "Usage: ./runner.sh <action> [api_url] [options]"
   echo ""
   echo "Actions:"
-  echo "  upload-url    <API_URL>                     Get presigned S3 upload URL"
-  echo "  upload-config <API_URL> [config.json]       Upload config.json using presigned URL"
-  echo "  start         <API_URL> [log_group] [sec]   Start generating logs"
-  echo "  stop          <API_URL>                     Send stop signal to background logger"
+  echo "  upload-url    [API_URL]                     Get presigned S3 upload URL"
+  echo "  upload-config [API_URL] [config.json]       Upload config.json using presigned URL"
+  echo "  start         [API_URL] [log_group] [sec]   Start generating logs"
+  echo "  stop          [API_URL]                     Send stop signal to background logger"
   echo ""
-  echo "Example:"
-  echo "  ./runner.sh start https://abc123.execute-api.us-east-1.amazonaws.com /aws/logpulse/demo 300"
+  echo "Examples:"
+  echo "  ./runner.sh upload-config"
+  echo "  ./runner.sh start"
+  echo "  ./runner.sh stop"
   exit 1
 fi
 
