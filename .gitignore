@@ -3,5 +3,5 @@
 /frontend/wget-log.1
 /localstack_data/cache
 /backend/.env
-/backend/'
 /backend/server
+/backend/main

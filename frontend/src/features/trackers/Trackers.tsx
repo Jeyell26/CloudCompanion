@@ -1,17 +1,30 @@
-import { Hash, Sparkles, ScanSearch, EyeOff } from 'lucide-react';
+import { Hash, Sparkles, ScanSearch, EyeOff, Pencil, Check, X } from 'lucide-react';
 import type { TrackerState, FilterRule, FilterMode } from '../../types';
+import { useState } from 'react';
 import './Trackers.css';
 
 interface TrackersProps {
   trackerState: TrackerState;
   filterRules: FilterRule[];
-  onSetFilter: (pattern: string, mode: FilterMode) => void;
+  onSetFilter: (pattern: string, mode: FilterMode, isRegex?: boolean) => void;
   onClearFilter: (pattern: string) => void;
 }
 
-function getFilterMode(filterRules: FilterRule[], pattern: string): FilterMode | null {
-  return filterRules.find(r => r.pattern === pattern)?.mode ?? null;
+function getMatchingRule(filterRules: FilterRule[], pattern: string): FilterRule | undefined {
+  // Exact match first
+  const exact = filterRules.find(r => r.pattern === pattern);
+  if (exact) return exact;
+
+  // Fallback to regex matches
+  return filterRules.find(r => {
+    if (r.isRegex) {
+      try { return new RegExp(r.pattern).test(pattern); } catch (e) { return false; }
+    }
+    return pattern.includes(r.pattern.replace(/{[^}]+}/g, ''));
+  });
 }
+
+
 
 function TrackerItem({
   pattern, count, filterRules, onSetFilter, onClearFilter, color
@@ -19,11 +32,45 @@ function TrackerItem({
   pattern: string;
   count?: number;
   filterRules: FilterRule[];
-  onSetFilter: (pattern: string, mode: FilterMode) => void;
+  onSetFilter: (pattern: string, mode: FilterMode, isRegex?: boolean) => void;
   onClearFilter: (pattern: string) => void;
   color?: string;
 }) {
-  const mode = getFilterMode(filterRules, pattern);
+  const matchingRule = getMatchingRule(filterRules, pattern);
+  const mode = matchingRule?.mode ?? null;
+  const isRegexRule = matchingRule?.isRegex ?? false;
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(pattern);
+
+  if (isEditing) {
+    return (
+      <div className="tracker-item edit-mode">
+        <div className="tracker-edit-inputs">
+          <input
+            className="tracker-edit-input"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            autoFocus
+          />
+        </div>
+        <div className="tracker-edit-actions">
+          <button className="tracker-save-btn group always-tint" title="Save as grouping rule" onClick={() => { onSetFilter(editValue, 'group', true); setIsEditing(false); }}>
+            <Check size={13} />
+          </button>
+          <button className="tracker-save-btn focus always-tint" title="Focus this pattern" onClick={() => { onSetFilter(editValue, 'focus', true); setIsEditing(false); }}>
+            <ScanSearch size={13} />
+          </button>
+          <button className="tracker-save-btn ignore always-tint" title="Ignore this pattern" onClick={() => { onSetFilter(editValue, 'ignore', true); setIsEditing(false); }}>
+            <EyeOff size={13} />
+          </button>
+          <button className="tracker-cancel-btn" title="Cancel" onClick={() => setIsEditing(false)}>
+            <X size={13} />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`tracker-item ${mode ? `mode-${mode}` : ''}`} style={color ? { '--focus-color': color } as React.CSSProperties : undefined}>
@@ -33,16 +80,26 @@ function TrackerItem({
       </div>
       <div className="tracker-item-actions">
         <button
+          className="tracker-edit-btn"
+          title="Edit filter (Regex)"
+          onClick={() => { 
+            setEditValue(isRegexRule ? pattern : pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')); 
+            setIsEditing(true); 
+          }}
+        >
+          <Pencil size={12} />
+        </button>
+        <button
           className={`tracker-action-btn focus ${mode === 'focus' ? 'active' : ''}`}
           title={mode === 'focus' ? 'Clear focus' : 'Focus'}
-          onClick={() => mode === 'focus' ? onClearFilter(pattern) : onSetFilter(pattern, 'focus')}
+          onClick={() => mode === 'focus' ? onClearFilter(pattern) : onSetFilter(pattern, 'focus', isRegexRule)}
         >
           <ScanSearch size={13} />
         </button>
         <button
           className={`tracker-action-btn ignore ${mode === 'ignore' ? 'active' : ''}`}
           title={mode === 'ignore' ? 'Clear ignore' : 'Ignore'}
-          onClick={() => mode === 'ignore' ? onClearFilter(pattern) : onSetFilter(pattern, 'ignore')}
+          onClick={() => mode === 'ignore' ? onClearFilter(pattern) : onSetFilter(pattern, 'ignore', isRegexRule)}
         >
           <EyeOff size={13} />
         </button>
@@ -67,7 +124,7 @@ export default function Trackers({ trackerState, filterRules, onSetFilter, onCle
           <p className="tracker-empty">Waiting for logs...</p>
         ) : (
           <div className="tracker-list">
-            {trackerState.mostCommon.map((entry, i) => (
+            {trackerState.mostCommon.map((entry) => (
               <TrackerItem
                 key={entry.pattern}
                 pattern={entry.pattern}
@@ -75,7 +132,7 @@ export default function Trackers({ trackerState, filterRules, onSetFilter, onCle
                 filterRules={filterRules}
                 onSetFilter={onSetFilter}
                 onClearFilter={onClearFilter}
-                color={focusRules.find(r => r.pattern === entry.pattern)?.color}
+                color={getMatchingRule(focusRules, entry.pattern)?.color}
               />
             ))}
           </div>
@@ -99,7 +156,7 @@ export default function Trackers({ trackerState, filterRules, onSetFilter, onCle
                 filterRules={filterRules}
                 onSetFilter={onSetFilter}
                 onClearFilter={onClearFilter}
-                color={focusRules.find(r => r.pattern === entry.pattern)?.color}
+                color={getMatchingRule(focusRules, entry.pattern)?.color}
               />
             ))}
           </div>

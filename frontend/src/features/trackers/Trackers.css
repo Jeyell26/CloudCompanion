@@ -121,3 +121,94 @@
 
 .tracker-action-btn.focus:hover, .tracker-action-btn.focus.active { color: var(--accent-purple); background: rgba(139,92,246,0.15); }
 .tracker-action-btn.ignore:hover, .tracker-action-btn.ignore.active { color: var(--color-danger); background: rgba(239,68,68,0.12); }
+
+.tracker-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  transition: all 0.12s;
+}
+
+.tracker-edit-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.1);
+}
+
+.tracker-item.edit-mode {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  background: rgba(255,255,255,0.06);
+  border-color: var(--border-color);
+}
+
+.tracker-edit-inputs {
+  display: flex;
+  gap: 4px;
+}
+
+.tracker-edit-input {
+  flex: 1;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 4px 6px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.tracker-edit-input:focus {
+  outline: none;
+  border-color: var(--accent-purple);
+}
+
+.tracker-regex-btn {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+
+.tracker-regex-btn:hover {
+  color: var(--text-primary);
+}
+
+.tracker-regex-btn.active {
+  background: rgba(139,92,246,0.15);
+  border-color: var(--accent-purple);
+  color: var(--accent-purple);
+}
+
+.tracker-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.tracker-save-btn, .tracker-cancel-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.05);
+}
+
+.tracker-save-btn.group:hover, .tracker-save-btn.group.always-tint { color: var(--accent-green, #10b981); background: rgba(16,185,129,0.15); }
+.tracker-save-btn.focus:hover, .tracker-save-btn.focus.always-tint { color: var(--accent-purple); background: rgba(139,92,246,0.15); }
+.tracker-save-btn.ignore:hover, .tracker-save-btn.ignore.always-tint { color: var(--color-danger); background: rgba(239,68,68,0.12); }
+.tracker-cancel-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.1); }

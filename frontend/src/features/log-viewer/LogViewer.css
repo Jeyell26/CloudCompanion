@@ -109,6 +109,7 @@
 /* ── Log lines ───────────────────────────────────────────────────────────── */
 
 .log-line {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 10px;
@@ -120,9 +121,25 @@
 .log-line:hover { background: rgba(255, 255, 255, 0.025); }
 
 .log-line.log-focused {
-  background: color-mix(in srgb, var(--focus-line-color, #8b5cf6) 8%, transparent) !important;
-  border-left-color: var(--focus-line-color, var(--accent-purple)) !important;
+  background: color-mix(in srgb, var(--focus-line-color, #8b5cf6) 18%, transparent) !important;
+  border-left: 3px solid var(--focus-line-color, var(--accent-purple)) !important;
 }
+
+/* Severity stripe — thin bar right of the focus border, shows original level color */
+.log-line.log-focused.level-error::before,
+.log-line.log-focused.level-warn::before,
+.log-line.log-focused.level-info::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  opacity: 0.75;
+}
+.log-line.log-focused.level-error::before { background: var(--color-danger); }
+.log-line.log-focused.level-warn::before  { background: var(--color-warning); }
+.log-line.log-focused.level-info::before  { background: var(--color-info); }
 
 .log-line.level-error { border-left-color: var(--color-danger); }
 .log-line.level-warn  { border-left-color: var(--color-warning); }

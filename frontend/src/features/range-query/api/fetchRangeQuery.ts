@@ -97,7 +97,7 @@ async function fetchRealRangeQuery(
       { method: 'POST', body: JSON.stringify(body) },
     );
 
-    results.push(...res.events);
+    results.push(...(res.events ?? []));
     nextToken = res.nextToken;
     page += 1;
     onProgress(page, res.totalPages ?? page);

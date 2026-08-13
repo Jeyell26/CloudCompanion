@@ -25,7 +25,7 @@ export default function TopBar({ session, onOpenSettings, onLogout, backendConne
           <span>{backendConnected ? `${session.region}` : 'LocalStack / Mock'}</span>
         </div>
 
-        <span className="topbar-key-hint">...{session.accessKeyId}</span>
+        <span className="topbar-key-hint">{session.roleArn.split('/').pop() || session.roleArn}</span>
 
         <button className="topbar-btn settings-btn" onClick={onOpenSettings} title="Settings">
           <SettingsIcon size={16} />
