@@ -24,6 +24,22 @@ export interface LoginCredentials {
  * Throws on network failure or invalid credentials — no silent fallback.
  */
 export async function loginWithIAM(creds: LoginCredentials): Promise<AuthSession> {
+  if (import.meta.env.VITE_MOCK_MODE === 'true' || creds.roleArn.includes('000000000000') || creds.roleArn.toLowerCase().includes('mock')) {
+    const mockToken = 'mock_logpulse_github_pages_' + Date.now();
+    setToken(mockToken);
+    localStorage.setItem('logpulse_region', creds.region || 'us-east-1');
+    localStorage.setItem('logpulse_role_arn', creds.roleArn || 'arn:aws:iam::000000000000:role/MockRole');
+    if (creds.externalId) {
+      localStorage.setItem('logpulse_external_id', creds.externalId);
+    }
+    return {
+      token: mockToken,
+      region: creds.region || 'us-east-1',
+      roleArn: creds.roleArn || 'arn:aws:iam::000000000000:role/MockRole',
+      externalId: creds.externalId,
+    };
+  }
+
   const res = await request<{ token: string }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(creds),

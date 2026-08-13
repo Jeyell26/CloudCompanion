@@ -24,9 +24,7 @@ function getMatchingRule(filterRules: FilterRule[], pattern: string): FilterRule
   });
 }
 
-function getFilterMode(filterRules: FilterRule[], pattern: string): FilterMode | null {
-  return getMatchingRule(filterRules, pattern)?.mode ?? null;
-}
+
 
 function TrackerItem({
   pattern, count, filterRules, onSetFilter, onClearFilter, color
