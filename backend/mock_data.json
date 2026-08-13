@@ -1,0 +1,35 @@
+[
+  {
+    "name": "/aws/lambda/processImage",
+    "stream": "stream-process-image-01",
+    "messages": [
+      "[INFO] Image upload received — bucket=user-assets-dev key=img-9812.png",
+      "[INFO] Resizing image to 800x600 resolution",
+      "[DEBUG] Thumbnail generated in 42ms",
+      "[INFO] Image optimization complete — saved 34% file size",
+      "[WARN] Image metadata contains unsupported EXIF tag 0x9286"
+    ]
+  },
+  {
+    "name": "/aws/ecs/production-api-server",
+    "stream": "stream-api-server-01",
+    "messages": [
+      "[INFO] GET /api/v1/health — 200 OK — 4ms",
+      "[INFO] POST /api/v1/auth/login — user=dev@cloudcompanion.io status=200",
+      "[WARN] Slow database query detected — table=users latency=240ms",
+      "[ERROR] Redis connection timeout — host=cache.prod-db:6379 retrying (1/3)",
+      "[INFO] GC cycle complete — heap_allocated=124MB freed=38MB"
+    ]
+  },
+  {
+    "name": "/aws/rds/prod-db-cluster",
+    "stream": "stream-rds-cluster-01",
+    "messages": [
+      "[INFO] Database cluster status: HEALTHY — active_connections=18",
+      "[INFO] Checkpoint starting: target age 30 sec",
+      "[INFO] Checkpoint complete: wrote 412 buffers (0.8%)",
+      "[WARN] Connection pool usage at 82% (82/100 connections in use)",
+      "[ERROR] Deadlock detected on transaction 849120 — rolling back tx"
+    ]
+  }
+]

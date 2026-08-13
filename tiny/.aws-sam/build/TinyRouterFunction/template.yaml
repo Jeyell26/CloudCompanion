@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Tiny Log Generator for LogPulse Demo (API Gateway + S3 + Lambda + CloudWatch)
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 128
+    Runtime: python3.12
+
+Resources:
+  # 1. S3 Storage Bucket
+  TinyStorageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [PUT, GET]
+            AllowedOrigins: ['*']
+
+  # 2. HTTP API Gateway with Built-in IAM Authorization
+  TinyApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Auth:
+        EnableIamAuthorizer: true
+        DefaultAuthorizer: AWS_IAM
+      CorsConfiguration:
+        AllowHeaders: ['*']
+        AllowMethods: ['*']
+        AllowOrigins: ['*']
+
+  # 3. Main Router Lambda Function
+  TinyRouterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: main.handler
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref TinyStorageBucket
+          LOGGER_FUNCTION_NAME: !Sub "${AWS::StackName}-logger"
+          DEFAULT_LOG_GROUP: /aws/logpulse/demo
+          DEFAULT_DURATION_SECONDS: '300'
+          MIN_DURATION_SECONDS: '5'
+          MAX_DURATION_SECONDS: '840'
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref TinyStorageBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-logger"
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutRetentionPolicy
+              Resource: '*'
+      Events:
+        UploadUrlRoute:
+          Type: HttpApi
+          Properties:
+            Path: /upload-url
+            Method: GET
+            ApiId: !Ref TinyApi
+        StartRoute:
+          Type: HttpApi
+          Properties:
+            Path: /start
+            Method: POST
+            ApiId: !Ref TinyApi
+        StopRoute:
+          Type: HttpApi
+          Properties:
+            Path: /stop
+            Method: POST
+            ApiId: !Ref TinyApi
+
+  # 4. Background Logger Lambda Worker Function
+  TinyLoggerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-logger"
+      CodeUri: .
+      Handler: logger.handler
+      Timeout: 900 # 15 minutes max execution time
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref TinyStorageBucket
+          DEFAULT_LOG_GROUP: /aws/logpulse/demo
+          DEFAULT_DURATION_SECONDS: '300'
+          MIN_DURATION_SECONDS: '5'
+          MAX_DURATION_SECONDS: '840'
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref TinyStorageBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: '*'
+
+Outputs:
+  ApiEndpoint:
+    Description: HTTP API Gateway Endpoint URL
+    Value: !Sub "https://${TinyApi}.execute-api.${AWS::Region}.amazonaws.com"
+  S3BucketName:
+    Description: S3 Storage Bucket Name
+    Value: !Ref TinyStorageBucket

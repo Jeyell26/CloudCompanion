@@ -1,2 +1,9 @@
-/localstack_data/cache
 /pipeline/.ec2-ip
+/node_modules
+/frontend/wget-log
+/frontend/wget-log.1
+/localstack_data/cache
+/backend/.env
+/backend/server
+/backend/main
+
