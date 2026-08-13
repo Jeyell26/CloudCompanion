@@ -1,9 +1,19 @@
+# Environment & Secrets
+.env
+*.env
+*.pem
+*.key
+
+# Deployment & Temporary State
 /pipeline/.ec2-ip
+/tiny/.api_url
+/bin/
+
+# Node & Build Outputs
 /node_modules
-/frontend/wget-log
-/frontend/wget-log.1
+/dist
+/frontend/wget-log*
 /localstack_data/cache
-/backend/.env
 /backend/server
 /backend/main
 
