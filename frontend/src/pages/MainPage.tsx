@@ -5,6 +5,7 @@ import LiveTail from '../features/live-tail/LiveTail';
 import RangeQuery from '../features/range-query/RangeQuery';
 import Settings from '../features/settings/Settings';
 import { Radio, Calendar } from 'lucide-react';
+import { useMock } from '../api/mockConfig';
 import type { AuthSession, LogGroup, SessionMode } from '../types';
 import type { useSettings } from '../features/settings/useSettings';
 import './MainPage.css';
@@ -31,6 +32,7 @@ export default function MainPage({ session, settingsHook, onLogout }: MainPagePr
         session={session}
         onOpenSettings={() => setShowSettings(true)}
         onLogout={onLogout}
+        backendConnected={!useMock()}
       />
 
       {mode === 'idle' && (
