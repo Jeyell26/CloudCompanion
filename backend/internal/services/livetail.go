@@ -14,6 +14,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -42,7 +43,7 @@ func NewLiveTailService(aws *AWSClient) *LiveTailService {
 }
 
 // StartLiveTail opens a CloudWatch Logs live tail stream.
-func (s *LiveTailService) StartLiveTail(ctx context.Context, logGroups []string, region, accessKeyID, secretKey, sessionToken string, onEvent func(LogEvent)) error {
+func (s *LiveTailService) StartLiveTail(ctx context.Context, logGroups []string, region, accountID, accessKeyID, secretKey, sessionToken string, onEvent func(LogEvent)) error {
 	client := s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken)
 
 	// LocalStack Community fallback: poll FilterLogEvents since LocalStack Community does not support StartLiveTail gRPC
@@ -88,9 +89,19 @@ func (s *LiveTailService) StartLiveTail(ctx context.Context, logGroups []string,
 		}
 	}
 
-	// Real AWS: use official StartLiveTail API
+	// Real AWS: format log group names into ARNs if needed for StartLiveTail API
+	logGroupARNs := make([]string, len(logGroups))
+	for i, group := range logGroups {
+		if strings.HasPrefix(group, "arn:aws:logs") {
+			logGroupARNs[i] = group
+		} else {
+			// Format: arn:aws:logs:region:account-id:log-group:log-group-name
+			logGroupARNs[i] = fmt.Sprintf("arn:aws:logs:%s:%s:log-group:%s", region, accountID, group)
+		}
+	}
+
 	liveTailInput := cloudwatchlogs.StartLiveTailInput{
-		LogGroupIdentifiers: logGroups,
+		LogGroupIdentifiers: logGroupARNs,
 	}
 
 	liveTailOutput, err := client.StartLiveTail(ctx, &liveTailInput)

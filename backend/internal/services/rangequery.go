@@ -20,7 +20,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -28,7 +27,8 @@ import (
 )
 
 type RangeQueryResult struct {
-	Events []LogEvent `json:"events"`
+	Events    []LogEvent `json:"events"`
+	NextToken string     `json:"nextToken,omitempty"`
 }
 
 // RangeQueryService handles CloudWatch Logs historical queries.
@@ -42,18 +42,21 @@ func NewRangeQueryService(aws *AWSClient) *RangeQueryService {
 }
 
 // QueryRange fetches log events within a time range for the given log groups.
-func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, startMs, endMs int64, region, accessKeyID, secretKey, sessionToken string) (*RangeQueryResult, error) {
+func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, startMs, endMs int64, nextToken, region, accessKeyID, secretKey, sessionToken string) (*RangeQueryResult, error) {
 	// client building
 	client := s.aws.CloudWatchLogsClient(region, accessKeyID, secretKey, sessionToken)
 
-	var logEvent []LogEvent
+	logEvent := []LogEvent{}
+	var resNextToken string
 
 	for _, group := range groups {
-		// input with group
 		filterLogEventsInput := cloudwatchlogs.FilterLogEventsInput{
 			LogGroupName: aws.String(group),
 			StartTime:    aws.Int64(startMs),
 			EndTime:      aws.Int64(endMs),
+		}
+		if nextToken != "" {
+			filterLogEventsInput.NextToken = aws.String(nextToken)
 		}
 
 		// gather output
@@ -61,9 +64,9 @@ func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, sta
 		if err != nil {
 			return nil, err
 		}
-		// reject if exceeded 10k messages
+
 		if filterLogEventsOutput.NextToken != nil {
-			return nil, fmt.Errorf("Log group %s exceeded 10 000 messages", group)
+			resNextToken = aws.ToString(filterLogEventsOutput.NextToken)
 		}
 
 		// map received log group
@@ -83,5 +86,8 @@ func (s *RangeQueryService) QueryRange(ctx context.Context, groups []string, sta
 		return logEvent[i].Timestamp < logEvent[j].Timestamp
 	})
 
-	return &RangeQueryResult{Events: logEvent}, nil
+	return &RangeQueryResult{
+		Events:    logEvent,
+		NextToken: resNextToken,
+	}, nil
 }
