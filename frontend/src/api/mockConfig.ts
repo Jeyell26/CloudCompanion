@@ -19,6 +19,7 @@ const MOCK_TOKEN_PREFIX =
  * All API calls should gate their mock branches on this function.
  */
 export function useMock(): boolean {
+  if (import.meta.env.VITE_MOCK_MODE === 'true') return true;
   const token = localStorage.getItem('logpulse_token');
   if (!token) return false;
   return token.startsWith(MOCK_TOKEN_PREFIX);
