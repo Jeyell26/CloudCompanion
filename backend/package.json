@@ -1,0 +1,27 @@
+{
+  "name": "cloudapp",
+  "version": "1.0.0",
+  "description": "This github repository is created to showcase my understanding of AWS Services whilst creating a simple companion app to help manage AWS systems via a web application.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jeyell26/CloudCompanion.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/Jeyell26/CloudCompanion/issues"
+  },
+  "homepage": "https://github.com/Jeyell26/CloudCompanion#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
+  }
+}
