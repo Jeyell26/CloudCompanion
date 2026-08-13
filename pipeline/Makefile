@@ -28,14 +28,10 @@ CORS_ORIGIN   = *
 # ---------------------------------------------------------------------------
 # Internal — resolved from CloudFormation outputs (do not edit)
 # ---------------------------------------------------------------------------
-EC2_IP = $(shell aws cloudformation describe-stacks \
-	--stack-name $(STACK_NAME) \
-	--region $(REGION) \
-	--query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" \
-	--output text 2>/dev/null)
+EC2_IP_FILE = .ec2-ip
 
-SSH       = ssh -i $(KEY_FILE) -o StrictHostKeyChecking=no ubuntu@$(EC2_IP)
-SCP       = scp -i $(KEY_FILE) -o StrictHostKeyChecking=no
+SSH = ssh -i $(KEY_FILE) -o StrictHostKeyChecking=no ubuntu@$$(cat $(EC2_IP_FILE))
+SCP = scp -i $(KEY_FILE) -o StrictHostKeyChecking=no
 
 # ---------------------------------------------------------------------------
 # Targets
@@ -49,7 +45,7 @@ SCP       = scp -i $(KEY_FILE) -o StrictHostKeyChecking=no
 # Deploy everything: launch EC2, build both, deploy both
 all: ec2-launch build deploy
 	@echo ""
-	@echo "LogPulse is live at http://$(EC2_IP)"
+	@echo "✅  LogPulse is live at http://$$(cat $(EC2_IP_FILE))"
 
 ## ── Step 1: Infrastructure ──────────────────────────────────────────────────
 
@@ -66,7 +62,12 @@ ec2-launch:
 			InstanceType=$(INSTANCE_TYPE) \
 			IAMInstanceProfile=$(IAM_PROFILE) \
 			BackendPort=$(BACKEND_PORT)
-	@echo "Stack deployed. EC2 IP: $(EC2_IP)"
+	@aws cloudformation describe-stacks \
+		--stack-name $(STACK_NAME) \
+		--region $(REGION) \
+		--query "Stacks[0].Outputs[?OutputKey=='PublicIP'].OutputValue" \
+		--output text > $(EC2_IP_FILE)
+	@echo "Stack deployed. EC2 IP: $$(cat $(EC2_IP_FILE))"
 
 ## ── Step 2: Build ───────────────────────────────────────────────────────────
 
@@ -93,8 +94,8 @@ deploy: deploy-backend deploy-frontend
 
 # Deploy Go binary + systemd service to EC2 and restart backend service
 deploy-backend:
-	@echo "📦  Deploying backend to $(EC2_IP)..."
-	@$(SCP) $(BIN_DIR)/$(BINARY_NAME) ubuntu@$(EC2_IP):/tmp/$(BINARY_NAME)
+	@echo "📦  Deploying backend to $$(cat $(EC2_IP_FILE))..."
+	@$(SCP) $(BIN_DIR)/$(BINARY_NAME) ubuntu@$$(cat $(EC2_IP_FILE)):/tmp/$(BINARY_NAME)
 	@$(SSH) " \
 		sudo mkdir -p /opt/logpulse && \
 		sudo mv /tmp/$(BINARY_NAME) /opt/logpulse/$(BINARY_NAME) && \
@@ -105,52 +106,29 @@ deploy-backend:
 		sudo systemctl enable logpulse && \
 		sudo systemctl restart logpulse \
 	"
-	@echo "✅  Backend deployed and running."
+	@echo "Backend deployed and running."
 
 # Deploy React dist/ to EC2 and reload Nginx
 deploy-frontend:
-	@echo "Deploying frontend to $(EC2_IP)..."
-	@$(SSH) "sudo mkdir -p /var/www/logpulse && sudo apt-get install -y nginx -qq && sudo systemctl enable nginx"
-	@$(SCP) -r $(FRONTEND_DIR)/dist ubuntu@$(EC2_IP):/tmp/logpulse-dist
-	@$(SSH) " \
-		sudo rm -rf /var/www/logpulse/dist && \
-		sudo mv /tmp/logpulse-dist /var/www/logpulse/dist && \
-		sudo chown -R www-data:www-data /var/www/logpulse && \
-		sudo tee /etc/nginx/sites-available/logpulse > /dev/null <<'NGINX'\n\
-limit_req_zone \$$binary_remote_addr zone=logpulse_api:10m rate=10r/s;\n\
-limit_conn_zone \$$binary_remote_addr zone=logpulse_conn:10m;\n\
-server {\n\
-    listen 80;\n\
-    server_name _;\n\
-    location / {\n\
-        root /var/www/logpulse/dist;\n\
-        index index.html;\n\
-        try_files \$$uri \$$uri/ /index.html;\n\
-    }\n\
-    location /api/ {\n\
-        limit_req zone=logpulse_api burst=20 nodelay;\n\
-        limit_conn logpulse_conn 5;\n\
-        proxy_pass http://127.0.0.1:$(BACKEND_PORT);\n\
-        proxy_http_version 1.1;\n\
-        proxy_set_header Host \$$host;\n\
-        proxy_set_header X-Real-IP \$$remote_addr;\n\
-        proxy_buffering off;\n\
-        proxy_cache off;\n\
-    }\n\
-}\n\
-NGINX\n\
-		sudo ln -sf /etc/nginx/sites-available/logpulse /etc/nginx/sites-enabled/logpulse && \
-		sudo rm -f /etc/nginx/sites-enabled/default && \
-		sudo nginx -t && \
-		sudo systemctl reload nginx \
-	"
-	@echo " Frontend deployed and Nginx reloaded."
+	@echo "Deploying frontend to $$(cat $(EC2_IP_FILE))..."
+	@$(SSH) "sudo mkdir -p /var/www/logpulse && sudo apt-get update -qq && sudo apt-get install -y nginx -qq && sudo systemctl enable nginx"
+	@$(SCP) -r $(FRONTEND_DIR)/dist ubuntu@$$(cat $(EC2_IP_FILE)):/tmp/logpulse-dist
+	@$(SSH) "sudo rm -rf /var/www/logpulse/dist && sudo mv /tmp/logpulse-dist /var/www/logpulse/dist && sudo chown -R www-data:www-data /var/www/logpulse"
+	@sed "s/__BACKEND_PORT__/$(BACKEND_PORT)/g" nginx.conf > /tmp/logpulse.nginx
+	@$(SCP) /tmp/logpulse.nginx ubuntu@$$(cat $(EC2_IP_FILE)):/tmp/logpulse.nginx
+	@$(SSH) "sudo mv /tmp/logpulse.nginx /etc/nginx/sites-available/logpulse \
+		&& sudo ln -sf /etc/nginx/sites-available/logpulse /etc/nginx/sites-enabled/logpulse \
+		&& sudo rm -f /etc/nginx/sites-enabled/default \
+		&& sudo nginx -t \
+		&& sudo systemctl reload nginx"
+	@rm -f /tmp/logpulse.nginx
+	@echo "Frontend deployed and Nginx reloaded."
 
 ## ── Utilities ───────────────────────────────────────────────────────────────
 
 # Print the public IP of the running LogPulse EC2 instance
 ip:
-	@echo "LogPulse EC2 IP: $(EC2_IP)"
+	@echo "LogPulse EC2 IP: $$(cat $(EC2_IP_FILE))"
 
 # SSH directly into the LogPulse EC2 instance
 ssh:

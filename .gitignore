@@ -5,3 +5,4 @@
 /frontend/wget-log
 /frontend/wget-log.1
 /localstack_data/cache
+/pipeline/.ec2-ip
